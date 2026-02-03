@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1770091914968,
+  "timestamp": 1770093502035,
   "index": "/booksmart_pwa/index.html",
   "assetGroups": [
     {
@@ -16,9 +16,9 @@
         "/booksmart_pwa/chunk-Y4LPEJMY.js",
         "/booksmart_pwa/favicon.ico",
         "/booksmart_pwa/index.html",
-        "/booksmart_pwa/main-55UQU7YX.js",
+        "/booksmart_pwa/main-WFGTBHOZ.js",
         "/booksmart_pwa/manifest.webmanifest",
-        "/booksmart_pwa/styles-5INURTSO.css"
+        "/booksmart_pwa/styles-GOIN4DQL.css"
       ],
       "patterns": []
     },
@@ -56,10 +56,10 @@
     "/booksmart_pwa/icons/icon-512x512.png": "1de182f76f7329dfa8f9fcdd1fdcdd695bea6a99",
     "/booksmart_pwa/icons/icon-72x72.png": "aa88a6096bd973be7f6d7a5489bfa6bc2463f8c4",
     "/booksmart_pwa/icons/icon-96x96.png": "7fb8f59c30ce2ff12c700321a0b39e14b3dc8f95",
-    "/booksmart_pwa/index.html": "7c08606bde96a3e411ede2486007714d3cc307a5",
-    "/booksmart_pwa/main-55UQU7YX.js": "f3ef66d2058ca47e79bb439dd2f514b8a169c6ba",
+    "/booksmart_pwa/index.html": "2f6ef8cea47746e9671b589efcb8fa6d20b3b665",
+    "/booksmart_pwa/main-WFGTBHOZ.js": "d76f645bfe2d63fc8421efee78544d03e720cd77",
     "/booksmart_pwa/manifest.webmanifest": "78ef1191cffa276eed40b637d6b687d1fefdfe9b",
-    "/booksmart_pwa/styles-5INURTSO.css": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+    "/booksmart_pwa/styles-GOIN4DQL.css": "3a839d8c0bfdd01a025a3721d1938f8e463c2507"
   },
   "navigationUrls": [
     {
