@@ -1,1 +1,19 @@
-/* You can add global styles to this file, and also import other style files */
+// Reset básico y tipografía
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f8fafc;
+    color: #1e293b;
+    overflow: hidden; // El scroll lo manejará el layout, no el body
+  }
+  
+  // Soporte para áreas seguras en dispositivos móviles
+  :root {
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+  }

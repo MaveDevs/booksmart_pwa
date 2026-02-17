@@ -1,0 +1,28 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  
+  // En escritorio, el navbar va arriba, el contenido abajo
+  @media (min-width: 768px) {
+    flex-direction: column; 
+  }
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  
+  .container-limit {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    // Espacio extra abajo en móvil para que el Navbar no tape el contenido
+    padding-bottom: calc(80px + var(--safe-bottom));
+    
+    @media (min-width: 768px) {
+      padding-bottom: 20px;
+    }
+  }
+}

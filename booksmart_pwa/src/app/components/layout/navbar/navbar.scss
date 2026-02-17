@@ -1,0 +1,73 @@
+.nav-wrapper {
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    z-index: 1000;
+    border-top: 1px solid #e2e8f0;
+  
+    // --- MÓVIL (Por defecto) ---
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 65px;
+    justify-content: space-around;
+    padding-bottom: env(safe-area-inset-bottom);
+  
+    // --- ESCRITORIO (Pantallas de más de 768px) ---
+    @media (min-width: 768px) {
+      position: sticky;
+      top: 0;
+      bottom: auto;
+      height: 70px;
+      padding: 0 10%;
+      justify-content: space-between;
+      border-top: none;
+      border-bottom: 1px solid #e2e8f0;
+    }
+  }
+  
+  .brand {
+    display: none; // Oculto en móvil
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #2563eb;
+  
+    @media (min-width: 768px) {
+      display: block;
+    }
+  }
+  
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    width: 100%;
+    justify-content: space-around;
+  
+    @media (min-width: 768px) {
+      width: auto;
+      justify-content: flex-end;
+    }
+  
+    a {
+      text-decoration: none;
+      color: #64748b;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: color 0.2s;
+  
+      &.active {
+        color: #2563eb;
+        .icon { transform: scale(1.1); }
+      }
+  
+      @media (min-width: 768px) {
+        flex-direction: row;
+        gap: 8px;
+      }
+    }
+  }
+  
+  .icon { font-size: 1.2rem; }
+  .label { font-size: 0.7rem; @media (min-width: 768px) { font-size: 1rem; } }
