@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
 
-# Permisos necesarios para el despliegue directo
+# Estos permisos son críticos para que el monitoreo y despliegue funcionen
 permissions:
   contents: read
   pages: write
@@ -32,7 +32,7 @@ jobs:
           bun install
           bun run build -- --configuration production --base-href /booksmart_pwa/
 
-      # Esta acción prepara los archivos para el despliegue directo
+      # Prepara los archivos para que GitHub los publique directamente
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
