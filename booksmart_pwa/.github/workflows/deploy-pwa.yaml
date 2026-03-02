@@ -4,47 +4,47 @@ on:
   push:
     branches: [ "main" ]
 
-# Permisos necesarios para organizaciones y despliegue de Pages
+# Permisos necesarios para el despliegue directo
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout del código
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # --- ETAPA DE SEGURIDAD: Trivy ---
-      - name: Escaneo de vulnerabilidades con Trivy
+      - name: Run Trivy (Seguridad)
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
-          ignore-unfixed: true
-          format: 'table'
           severity: 'CRITICAL,HIGH'
-          exit-code: '1' # Detiene el flujo si hay vulnerabilidades graves
+          exit-code: '1'
 
-      # --- ETAPA DE CONSTRUCCIÓN: Bun ---
-      - name: Configurar Bun
+      - name: Setup Bun
         uses: oven-sh/setup-bun@v1
+
+      - name: Install & Build
+        run: |
+          bun install
+          bun run build -- --configuration production --base-href /booksmart_pwa/
+
+      # Esta acción prepara los archivos para el despliegue directo
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          bun-version: latest
+          path: dist/booksmart_pwa/browser
 
-      - name: Instalar dependencias
-        run: bun install
-
-      - name: Build de Angular PWA
-        # Se usa el base-href para que los assets carguen bien en mavedevs.github.io/booksmart_pwa/
-        run: bun run build -- --configuration production --base-href /booksmart_pwa/
-
-      # --- ETAPA DE DESPLIEGUE: GitHub Pages ---
-      - name: Desplegar a GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: dist/booksmart_pwa/browser
-          branch: gh-pages
-          clean: true # Elimina archivos viejos en la rama gh-pages
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
