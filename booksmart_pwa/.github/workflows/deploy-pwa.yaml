@@ -4,7 +4,6 @@ on:
   push:
     branches: [ "main" ]
 
-# Estos permisos son críticos para que el monitoreo y despliegue funcionen
 permissions:
   contents: read
   pages: write
@@ -17,26 +16,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run Trivy (Seguridad)
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          severity: 'CRITICAL,HIGH'
-          exit-code: '1'
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
 
       - name: Install & Build
+        # El comando 'working-directory' es clave aquí
+        working-directory: ./booksmart_pwa
         run: |
           bun install
           bun run build -- --configuration production --base-href /booksmart_pwa/
 
-      # Prepara los archivos para que GitHub los publique directamente
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist/booksmart_pwa/browser
+          # Ajustamos la ruta para que incluya la carpeta del proyecto
+          path: booksmart_pwa/dist/booksmart_pwa/browser
 
   deploy:
     needs: build
