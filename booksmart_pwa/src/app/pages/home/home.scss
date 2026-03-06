@@ -1,0 +1,102 @@
+.dashboard-filters {
+    margin-bottom: 2rem;
+  
+    h2 {
+      text-align: center;
+      color: #1F3A5F;
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+  
+    .filters-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+  
+      label {
+        display: flex;
+        flex-direction: column;
+        font-size: 1rem;
+        color: #6B6B6B;
+  
+        .filter-input {
+          margin-top: 0.5rem;
+          padding: 0.5rem;
+          border: 2px solid #E6E8E7;
+          border-radius: 0.6rem;
+          font-size: 1rem;
+          transition: all 0.3s ease;
+  
+          &:focus {
+            outline: none;
+            border-color: #1FBF9F;
+            box-shadow: 0 0 0 3px rgba(31, 191, 159, 0.15);
+          }
+        }
+      }
+    }
+  
+    .btn-primary {
+      margin-top: 1rem;
+      padding: 0.8rem 1.5rem;
+      background: linear-gradient(135deg, #1FBF9F 0%, #179E85 100%);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 0.6rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+  
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(31, 191, 159, 0.35);
+      }
+  
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+  
+  .dashboard-agenda {
+    h2 {
+      text-align: center;
+      color: #1F3A5F;
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+  
+    .agenda-table {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+  
+      .agenda-header,
+      .agenda-row {
+        display: grid;
+        grid-template-columns: 1fr 2fr 2fr 1fr;
+        gap: 1rem;
+        padding: 0.8rem;
+        border-radius: 0.6rem;
+        background: #FFFFFF;
+        box-shadow: 0 5px 15px rgba(31, 191, 159, 0.1);
+      }
+  
+      .agenda-header {
+        font-weight: 700;
+        background: #1FBF9F;
+        color: #FFFFFF;
+      }
+  
+      .agenda-row {
+        font-size: 1rem;
+        color: #6B6B6B;
+  
+        &:nth-child(even) {
+          background: #F8F9FA;
+        }
+      }
+    }
+  }
