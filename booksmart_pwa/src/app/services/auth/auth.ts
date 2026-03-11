@@ -52,7 +52,11 @@ export class Auth {
   }
 
   register(userData: RegisterRequest): Observable<User> {
-    return this.api.post<User>('/api/v1/users/', userData);
+    // Registro temporalmente deshabilitado
+    return new Observable(observer => {
+      observer.error(new Error('El registro está temporalmente deshabilitado.'));
+    });
+    // return this.api.post<User>('/api/v1/users/', userData);
   }
 
   logout(): Observable<any> {
