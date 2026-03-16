@@ -40,33 +40,37 @@ export interface EstablishmentUpdate {
   providedIn: 'root',
 })
 export class Establishments {
-  private readonly basePath = '/api/v1/establishments';
+  private readonly collectionPath = '/api/v1/establishments/';
 
   constructor(private api: Api) {}
 
+  private itemPath(id: number): string {
+    return `${this.collectionPath}${id}`;
+  }
+
   getEstablishments(): Observable<Establishment[]> {
-    return this.api.get<Establishment[]>(this.basePath);
+    return this.api.get<Establishment[]>(this.collectionPath);
   }
 
   getMyEstablishments(userId: number): Observable<Establishment[]> {
     const params = new HttpParams().set('user_id', userId.toString());
-    return this.api.get<Establishment[]>(this.basePath, params);
+    return this.api.get<Establishment[]>(this.collectionPath, params);
   }
 
   getEstablishment(id: number): Observable<Establishment> {
-    return this.api.get<Establishment>(`${this.basePath}/${id}`);
+    return this.api.get<Establishment>(this.itemPath(id));
   }
 
   createEstablishment(data: EstablishmentCreate): Observable<Establishment> {
-    return this.api.post<Establishment>(this.basePath, data);
+    return this.api.post<Establishment>(this.collectionPath, data);
   }
 
   updateEstablishment(id: number, data: EstablishmentUpdate): Observable<Establishment> {
-    return this.api.patch<Establishment>(`${this.basePath}/${id}`, data);
+    return this.api.patch<Establishment>(this.itemPath(id), data);
   }
 
   deleteEstablishment(id: number): Observable<any> {
-    return this.api.delete(`${this.basePath}/${id}`);
+    return this.api.delete(this.itemPath(id));
   }
 }
 
