@@ -1,0 +1,58 @@
+<div class="agendas-container">
+  <header class="agendas-header">
+    <h1>Agendas y Citas</h1>
+    <p>Consulta horarios de trabajo y citas registradas.</p>
+  </header>
+
+  <app-alert [message]="errorMessage" [type]="'error'" [show]="!!errorMessage"></app-alert>
+
+  <section class="card" *ngIf="!isLoadingEstablishments && establishments.length === 0">
+    <h2>No hay establecimientos disponibles</h2>
+    <p>Primero registra un establecimiento para gestionar agendas y citas.</p>
+  </section>
+
+  <ng-container *ngIf="establishments.length > 0">
+    <section class="card selector-card">
+      <label for="establishment">Establecimiento</label>
+      <select
+        id="establishment"
+        class="form-input"
+        [ngModel]="selectedEstablishmentId"
+        (ngModelChange)="onEstablishmentChange($event)">
+        <option *ngFor="let establishment of establishments" [value]="establishment.establecimiento_id">
+          {{ establishment.nombre }}
+        </option>
+      </select>
+    </section>
+
+    <section class="card">
+      <h2>Horarios de agenda</h2>
+      <p *ngIf="!isLoadingAgendas && agendas.length === 0">No hay horarios configurados para este establecimiento.</p>
+
+      <div class="list" *ngIf="agendas.length > 0">
+        <article class="item" *ngFor="let agenda of agendas; trackBy: trackByAgendaId">
+          <strong>{{ getDayLabel(agenda.dia_semana) }}</strong>
+          <span>{{ agenda.hora_inicio }} - {{ agenda.hora_fin }}</span>
+        </article>
+      </div>
+    </section>
+  </ng-container>
+
+  <section class="card">
+    <h2>Mis citas</h2>
+    <p *ngIf="!isLoadingAppointments && appointments.length === 0">Aún no hay citas registradas.</p>
+
+    <div class="list" *ngIf="appointments.length > 0">
+      <article class="item" *ngFor="let appointment of appointments; trackBy: trackByAppointmentId">
+        <div class="item-head">
+          <strong>Cita #{{ appointment.cita_id }}</strong>
+          <span class="status" [class.cancelled]="appointment.estado === 'CANCELADA'">
+            {{ getStatusLabel(appointment.estado) }}
+          </span>
+        </div>
+        <span>{{ appointment.fecha }} · {{ appointment.hora_inicio }} - {{ appointment.hora_fin }}</span>
+        <small>Servicio #{{ appointment.servicio_id }} · Cliente #{{ appointment.cliente_id }}</small>
+      </article>
+    </div>
+  </section>
+</div>

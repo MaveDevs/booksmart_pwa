@@ -1,0 +1,90 @@
+.agendas-container {
+  display: grid;
+  gap: 1rem;
+}
+
+.agendas-header {
+  h1 {
+    color: var(--color-text-strong);
+    font-size: 1.8rem;
+    margin-bottom: 0.35rem;
+  }
+
+  p {
+    color: var(--color-text-muted);
+  }
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.9rem;
+  padding: 1rem;
+  display: grid;
+  gap: 0.65rem;
+
+  h2 {
+    color: var(--color-text-strong);
+  }
+}
+
+.selector-card {
+  label {
+    color: var(--color-text-strong);
+    font-weight: 600;
+  }
+}
+
+.form-input {
+  width: 100%;
+  border: 2px solid var(--color-border);
+  border-radius: 0.6rem;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: var(--color-surface);
+    box-shadow: 0 0 0 3px rgba(31, 191, 159, 0.15);
+  }
+}
+
+.list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.item {
+  border: 1px solid var(--color-border);
+  border-radius: 0.8rem;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.3rem;
+  color: var(--color-text);
+}
+
+.item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  background: var(--color-primary-soft);
+  color: var(--color-text-strong);
+
+  &.cancelled {
+    background: var(--color-danger-soft);
+    color: var(--color-danger);
+  }
+}

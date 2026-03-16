@@ -1,19 +1,68 @@
 // Reset básico y tipografía
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  body {
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background-color: #f8fafc;
-    color: #1e293b;
-    overflow: hidden; // El scroll lo manejará el layout, no el body
-  }
-  
-  // Soporte para áreas seguras en dispositivos móviles
-  :root {
-    --safe-top: env(safe-area-inset-top);
-    --safe-bottom: env(safe-area-inset-bottom);
-  }
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+
+  --color-primary: #1FBF9F;
+  --color-primary-strong: #179E85;
+  --color-primary-soft: rgba(31, 191, 159, 0.15);
+
+  --color-secondary: #1F3A5F;
+  --color-bg: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-surface-muted: #F8F9FA;
+
+  --color-text: #1E293B;
+  --color-text-strong: #1F3A5F;
+  --color-text-muted: #6B6B6B;
+  --color-text-soft: #4B5563;
+
+  --color-border: #E6E8E7;
+  --color-placeholder: #9CA3AF;
+
+  --color-danger: #991B1B;
+  --color-danger-soft: #FEE2E2;
+  --color-backdrop: rgba(15, 23, 42, 0.45);
+
+  --color-nav-item: #64748B;
+
+  --auth-gradient-start: #1FBF9F;
+  --auth-gradient-end: #1F3A5F;
+}
+
+:root[data-theme='dark'] {
+  --color-bg: #0B1220;
+  --color-surface: #111A2B;
+  --color-surface-muted: #1A263B;
+
+  --color-text: #E2E8F0;
+  --color-text-strong: #D7E3F4;
+  --color-text-muted: #9CB0CC;
+  --color-text-soft: #B4C2D6;
+
+  --color-border: #2D3D58;
+  --color-placeholder: #7D8CA4;
+
+  --color-primary-soft: rgba(31, 191, 159, 0.22);
+  --color-danger-soft: rgba(153, 27, 27, 0.22);
+  --color-backdrop: rgba(2, 6, 23, 0.65);
+
+  --color-nav-item: #C0CEE3;
+
+  --auth-gradient-start: #104B46;
+  --auth-gradient-end: #0B1220;
+}
+
+body {
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  overflow: hidden;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}

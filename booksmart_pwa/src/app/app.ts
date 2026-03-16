@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { Theme } from './services/theme/theme';
 
 @Component({
   selector: 'app-root',
@@ -10,4 +11,8 @@ import { RouterOutlet } from '@angular/router';
 })
 export class App {
   title = 'booksmart_pwa';
+
+  constructor(private themeService: Theme) {
+    this.themeService.initializeTheme();
+  }
 }
