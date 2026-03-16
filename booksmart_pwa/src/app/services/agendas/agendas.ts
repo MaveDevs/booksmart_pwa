@@ -24,12 +24,12 @@ export interface Agenda {
   providedIn: 'root',
 })
 export class Agendas {
-  private readonly basePath = '/api/v1/agendas';
+  private readonly collectionPath = '/api/v1/agendas/';
 
   constructor(private api: Api) {}
 
   getByEstablishment(establishmentId: number): Observable<Agenda[]> {
     const params = new HttpParams().set('establecimiento_id', establishmentId.toString());
-    return this.api.get<Agenda[]>(this.basePath, params);
+    return this.api.get<Agenda[]>(this.collectionPath, params);
   }
 }

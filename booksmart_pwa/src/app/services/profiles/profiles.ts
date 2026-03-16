@@ -28,20 +28,24 @@ export interface ProfileUpdate {
   providedIn: 'root',
 })
 export class Profiles {
-  private readonly basePath = '/api/v1/profiles';
+  private readonly collectionPath = '/api/v1/profiles/';
 
   constructor(private api: Api) {}
 
+  private itemPath(profileId: number): string {
+    return `${this.collectionPath}${profileId}`;
+  }
+
   getByEstablishment(establishmentId: number): Observable<Profile[]> {
     const params = new HttpParams().set('establecimiento_id', establishmentId.toString());
-    return this.api.get<Profile[]>(this.basePath, params);
+    return this.api.get<Profile[]>(this.collectionPath, params);
   }
 
   create(data: ProfileCreate): Observable<Profile> {
-    return this.api.post<Profile>(this.basePath, data);
+    return this.api.post<Profile>(this.collectionPath, data);
   }
 
   update(profileId: number, data: ProfileUpdate): Observable<Profile> {
-    return this.api.patch<Profile>(`${this.basePath}/${profileId}`, data);
+    return this.api.patch<Profile>(this.itemPath(profileId), data);
   }
 }
