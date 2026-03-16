@@ -6,27 +6,27 @@
     animation: slideDown 0.3s ease-out;
   
     &-error {
-      background-color: #fee;
-      color: #c33;
-      border: 1px solid #fcc;
+      background-color: var(--color-danger-soft);
+      color: var(--color-danger);
+      border: 1px solid color-mix(in srgb, var(--color-danger) 25%, transparent);
     }
   
     &-success {
-      background-color: #efe;
-      color: #3c3;
-      border: 1px solid #cfc;
+      background-color: color-mix(in srgb, var(--color-primary) 18%, transparent);
+      color: var(--color-primary);
+      border: 1px solid color-mix(in srgb, var(--color-primary) 28%, transparent);
     }
   
     &-info {
-      background-color: #eef;
-      color: #33c;
-      border: 1px solid #ccf;
+      background-color: color-mix(in srgb, var(--color-secondary) 14%, transparent);
+      color: var(--color-secondary);
+      border: 1px solid color-mix(in srgb, var(--color-secondary) 24%, transparent);
     }
   
     &-warning {
-      background-color: #ffe;
-      color: #cc3;
-      border: 1px solid #ffc;
+      background-color: color-mix(in srgb, var(--color-secondary) 18%, transparent);
+      color: var(--color-secondary);
+      border: 1px solid color-mix(in srgb, var(--color-secondary) 30%, transparent);
     }
   }
   

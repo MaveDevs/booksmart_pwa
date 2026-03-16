@@ -1,0 +1,98 @@
+.profile-container {
+	display: grid;
+	gap: 1rem;
+}
+
+.profile-header {
+	h1 {
+		color: var(--color-text-strong);
+		font-size: 1.8rem;
+		margin-bottom: 0.35rem;
+	}
+
+	p {
+		color: var(--color-text-muted);
+	}
+}
+
+.card {
+	background: var(--color-surface);
+	border: 1px solid var(--color-border);
+	border-radius: 0.9rem;
+	padding: 1rem;
+}
+
+.selector-card {
+	display: grid;
+	gap: 0.4rem;
+
+	label {
+		color: var(--color-text-strong);
+		font-weight: 600;
+	}
+}
+
+.form-card {
+	h2 {
+		color: var(--color-text-strong);
+		margin-bottom: 0.5rem;
+	}
+}
+
+.hint {
+	color: var(--color-text-muted);
+	margin-bottom: 0.8rem;
+}
+
+.form-grid {
+	display: grid;
+	gap: 0.8rem;
+	margin-bottom: 0.9rem;
+
+	@media (min-width: 760px) {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.full-width {
+	@media (min-width: 760px) {
+		grid-column: 1 / -1;
+	}
+}
+
+label {
+	display: grid;
+	gap: 0.3rem;
+	color: var(--color-text-strong);
+	font-weight: 600;
+	font-size: 0.9rem;
+}
+
+.form-input {
+	width: 100%;
+	border: 2px solid var(--color-border);
+	border-radius: 0.6rem;
+	padding: 0.75rem;
+	font-size: 0.95rem;
+	background: var(--color-surface-muted);
+	color: var(--color-text);
+	transition: all 0.2s ease;
+	box-sizing: border-box;
+
+	&:focus {
+		outline: none;
+		border-color: var(--color-primary);
+		background: var(--color-surface);
+		box-shadow: 0 0 0 3px rgba(31, 191, 159, 0.15);
+	}
+}
+
+.btn-primary {
+	border-radius: 0.6rem;
+	padding: 0.65rem 0.95rem;
+	font-weight: 600;
+	border: none;
+	cursor: pointer;
+	background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-strong) 100%);
+	color: var(--color-surface);
+}

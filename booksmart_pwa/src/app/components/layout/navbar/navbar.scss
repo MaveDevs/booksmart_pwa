@@ -1,73 +1,144 @@
 .nav-wrapper {
-    background: #ffffff;
-    display: flex;
+  background: var(--color-surface);
+  display: flex;
+  align-items: center;
+  z-index: 1000;
+  border-top: 1px solid var(--color-border);
+
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  min-height: 65px;
+  justify-content: center;
+  padding: 0.35rem 0.45rem calc(0.35rem + env(safe-area-inset-bottom));
+
+  @media (min-width: 768px) {
+    padding: 0.5rem 8%;
+  justify-content: space-between;
+    position: sticky;
+    top: 0;
+    bottom: auto;
+    border-top: none;
+    border-bottom: 1px solid var(--color-border);
+}
+}
+  
+.brand {
+  display: none;
+
+  @media (min-width: 768px) {
+    display: inline-flex;
     align-items: center;
-    z-index: 1000;
-    border-top: 1px solid #e2e8f0;
+    gap: 0.55rem;
+  }
+}
+
+.brand-logo-shell {
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.9rem;
+  background: #FFFFFF;
+  border: 1px solid rgba(31, 58, 95, 0.08);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+.brand-logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.brand-text {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: 0.01em;
+}
   
-    // --- MÓVIL (Por defecto) ---
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 65px;
-    justify-content: space-around;
-    padding-bottom: env(safe-area-inset-bottom);
-  
-    // --- ESCRITORIO (Pantallas de más de 768px) ---
+.nav-links {
+  display: flex;
+  gap: 0.25rem;
+  width: 100%;
+  justify-content: space-between;
+  touch-action: manipulation;
+
+  @media (min-width: 768px) {
+    width: auto;
+    justify-content: flex-end;
+    gap: 0.35rem;
+  }
+
+  .nav-item,
+  .theme-btn,
+  .logout-btn {
+    text-decoration: none;
+    color: var(--color-nav-item);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.6rem;
+    border-radius: 0.65rem;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.74rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+
     @media (min-width: 768px) {
-      position: sticky;
-      top: 0;
-      bottom: auto;
-      height: 70px;
-      padding: 0 10%;
-      justify-content: space-between;
-      border-top: none;
-      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.92rem;
+      padding: 0.5rem 0.75rem;
     }
   }
-  
-  .brand {
-    display: none; // Oculto en móvil
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: #2563eb;
-  
-    @media (min-width: 768px) {
-      display: block;
+
+  .nav-item.active,
+  .theme-btn.active {
+    color: var(--color-primary);
+    background: var(--color-primary-soft);
+    border-color: var(--color-primary-soft);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .nav-item:hover,
+    .theme-btn:hover,
+    .logout-btn:hover {
+      color: var(--color-secondary);
+      background: var(--color-primary-soft);
+      border-color: var(--color-primary-soft);
     }
   }
-  
+
+  .logout-btn {
+    color: var(--color-secondary);
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background: var(--color-danger-soft);
+        border-color: var(--color-danger-soft);
+        color: var(--color-danger);
+      }
+    }
+  }
+}
+
+@media (max-width: 420px) {
   .nav-links {
-    display: flex;
-    gap: 2rem;
-    width: 100%;
-    justify-content: space-around;
-  
-    @media (min-width: 768px) {
-      width: auto;
-      justify-content: flex-end;
-    }
-  
-    a {
-      text-decoration: none;
-      color: #64748b;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      transition: color 0.2s;
-  
-      &.active {
-        color: #2563eb;
-        .icon { transform: scale(1.1); }
-      }
-  
-      @media (min-width: 768px) {
-        flex-direction: row;
-        gap: 8px;
-      }
+    gap: 0.15rem;
+
+    .nav-item,
+    .theme-btn,
+    .logout-btn {
+      font-size: 0.69rem;
+      padding-inline: 0.42rem;
     }
   }
-  
-  .icon { font-size: 1.2rem; }
-  .label { font-size: 0.7rem; @media (min-width: 768px) { font-size: 1rem; } }
+}

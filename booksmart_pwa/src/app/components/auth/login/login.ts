@@ -38,24 +38,34 @@ export class Login {
       password: this.password
     };
 
+    console.log('[Login] 🚀 Payload enviado:', { email: this.email, password: '***' });
+
     this.authService.login(credentials).subscribe({
       next: (response) => {
+        console.log('[Login] ✅ Respuesta exitosa:', response);
         this.authService.saveToken(response.access_token);
 
         // Fetch user profile and then check if they have an establishment
         this.authService.fetchCurrentUser().subscribe({
           next: (user) => {
+            console.log('[Login] 👤 Usuario obtenido:', user);
             this.authService.setUser(user);
             this.checkEstablishmentsAndNavigate(user.usuario_id);
           },
-          error: () => {
-            // Can't fetch profile but token is valid — go to setup as fallback
+          error: (err) => {
+            console.error('[Login] ❌ Error al obtener usuario:', err);
+            console.error('[Login] status:', err.status, '| body:', err.error);
             this.isLoading = false;
             this.router.navigate(['/setup/establishment']);
           }
         });
       },
       error: (error) => {
+        console.error('[Login] ❌ Error en login:', error);
+        console.error('[Login] status:', error.status);
+        console.error('[Login] body:', error.error);
+        console.error('[Login] payload enviado:', { email: this.email, password: '***' });
+
         if (error.status === 401 || error.status === 422 || error.status === 400) {
           this.errorMessage = 'Correo o contraseña incorrectos';
         } else if (error.status === 404) {

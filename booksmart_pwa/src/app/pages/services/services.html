@@ -1,1 +1,158 @@
-<p>services works!</p>
+<div class="services-container">
+	<header class="services-header">
+		<h1>Servicios del Negocio</h1>
+		<p>Da de alta y actualiza los servicios que ofreces.</p>
+	</header>
+
+	<app-alert
+		[message]="errorMessage"
+		[type]="'error'"
+		[show]="!!errorMessage">
+	</app-alert>
+
+	<app-alert
+		[message]="successMessage"
+		[type]="'success'"
+		[show]="!!successMessage">
+	</app-alert>
+
+	<section class="card" *ngIf="!isLoadingEstablishments && establishments.length === 0">
+		<h2>No hay establecimientos disponibles</h2>
+		<p>Primero debes registrar un establecimiento para administrar servicios.</p>
+	</section>
+
+	<ng-container *ngIf="establishments.length > 0">
+		<section class="card selector-card">
+			<label for="establishment">Establecimiento</label>
+			<select
+				id="establishment"
+				class="form-input"
+				[ngModel]="selectedEstablishmentId"
+				(ngModelChange)="onEstablishmentChange($event)">
+				<option
+					*ngFor="let establishment of establishments"
+					[value]="establishment.establecimiento_id">
+					{{ establishment.nombre }}
+				</option>
+			</select>
+		</section>
+
+		<section class="card form-card">
+			<h2>Nuevo servicio</h2>
+			<div class="form-grid">
+				<label>
+					Nombre
+					<input class="form-input" [(ngModel)]="newService.nombre" placeholder="Ej. Corte clásico">
+				</label>
+
+				<label>
+					Duración (min)
+					<input class="form-input" type="number" [(ngModel)]="newService.duracion" min="1">
+				</label>
+
+				<label>
+					Precio
+					<input class="form-input" type="number" [(ngModel)]="newService.precio" min="0" step="0.01">
+				</label>
+
+				<label>
+					Estado
+					<select class="form-input" [(ngModel)]="newService.activo">
+						<option [ngValue]="true">Activo</option>
+						<option [ngValue]="false">Inactivo</option>
+					</select>
+				</label>
+
+				<label class="full-width">
+					Descripción
+					<textarea
+						class="form-input"
+						rows="3"
+						[(ngModel)]="newService.descripcion"
+						placeholder="Descripción del servicio"></textarea>
+				</label>
+			</div>
+
+			<button class="btn-primary" type="button" [disabled]="isSubmitting" (click)="createService()">
+				{{ isSubmitting ? 'Guardando...' : 'Crear servicio' }}
+			</button>
+		</section>
+
+		<section class="card list-card">
+			<h2>Servicios registrados</h2>
+			<p *ngIf="!isLoadingServices && services.length === 0">No hay servicios registrados para este establecimiento.</p>
+
+			<div class="service-list" *ngIf="services.length > 0">
+				<article class="service-item" *ngFor="let service of services; trackBy: trackByServiceId">
+					<ng-container *ngIf="editingServiceId !== service.servicio_id; else editMode">
+						<div class="service-head">
+							<h3>{{ service.nombre }}</h3>
+							<span class="status" [class.inactive]="!service.activo">
+								{{ service.activo ? 'Activo' : 'Inactivo' }}
+							</span>
+						</div>
+						<p class="description">{{ service.descripcion || 'Sin descripción' }}</p>
+						<p class="meta">Duración: {{ service.duracion }} min · Precio: ${{ service.precio }}</p>
+
+						<div class="actions">
+							<button class="btn-secondary" type="button" (click)="startEdit(service)">Editar</button>
+							<button class="btn-danger" type="button" [disabled]="isSubmitting" (click)="requestDeleteService(service.servicio_id)">
+								Eliminar
+							</button>
+						</div>
+					</ng-container>
+
+					<ng-template #editMode>
+						<div class="form-grid compact">
+							<label>
+								Nombre
+								<input class="form-input" [(ngModel)]="editService.nombre">
+							</label>
+
+							<label>
+								Duración (min)
+								<input class="form-input" type="number" min="1" [(ngModel)]="editService.duracion">
+							</label>
+
+							<label>
+								Precio
+								<input class="form-input" type="number" min="0" step="0.01" [(ngModel)]="editService.precio">
+							</label>
+
+							<label>
+								Estado
+								<select class="form-input" [(ngModel)]="editService.activo">
+									<option [ngValue]="true">Activo</option>
+									<option [ngValue]="false">Inactivo</option>
+								</select>
+							</label>
+
+							<label class="full-width">
+								Descripción
+								<textarea class="form-input" rows="3" [(ngModel)]="editService.descripcion"></textarea>
+							</label>
+						</div>
+
+						<div class="actions">
+							<button class="btn-primary" type="button" [disabled]="isSubmitting" (click)="saveEdit(service.servicio_id)">
+								Guardar cambios
+							</button>
+							<button class="btn-secondary" type="button" (click)="cancelEdit()">Cancelar</button>
+						</div>
+					</ng-template>
+				</article>
+			</div>
+		</section>
+	</ng-container>
+
+	<app-confirm-modal
+		[show]="showDeleteConfirmModal"
+		[title]="'Eliminar servicio'"
+		[message]="'Esta acción no se puede deshacer. ¿Deseas eliminar este servicio?'"
+		[confirmText]="'Sí, eliminar'"
+		[cancelText]="'Cancelar'"
+		[danger]="true"
+		(confirm)="confirmDeleteService()"
+		(cancel)="cancelDeleteService()">
+	</app-confirm-modal>
+</div>

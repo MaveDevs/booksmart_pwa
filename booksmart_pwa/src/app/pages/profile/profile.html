@@ -1,1 +1,111 @@
-<p>profile works!</p>
+<div class="profile-container">
+	<header class="profile-header">
+		<h1>Perfil del Negocio</h1>
+		<p>Actualiza información interna y la vista pública de tu establecimiento.</p>
+	</header>
+
+	<app-alert
+		[message]="errorMessage"
+		[type]="'error'"
+		[show]="!!errorMessage">
+	</app-alert>
+
+	<app-alert
+		[message]="successMessage"
+		[type]="'success'"
+		[show]="!!successMessage">
+	</app-alert>
+
+	<section class="card" *ngIf="!isLoading && establishments.length === 0">
+		<h2>No hay establecimientos</h2>
+		<p>Primero registra un establecimiento para editar su perfil.</p>
+	</section>
+
+	<ng-container *ngIf="establishments.length > 0">
+		<section class="card selector-card">
+			<label for="establishment">Establecimiento</label>
+			<select
+				id="establishment"
+				class="form-input"
+				[ngModel]="selectedEstablishmentId"
+				(ngModelChange)="onEstablishmentChange($event)">
+				<option
+					*ngFor="let establishment of establishments"
+					[value]="establishment.establecimiento_id">
+					{{ establishment.nombre }}
+				</option>
+			</select>
+		</section>
+
+		<section class="card form-card">
+			<h2>Datos del establecimiento</h2>
+			<div class="form-grid">
+				<label>
+					Nombre
+					<input class="form-input" [(ngModel)]="establishmentForm.nombre">
+				</label>
+
+				<label>
+					Teléfono
+					<input class="form-input" [(ngModel)]="establishmentForm.telefono" placeholder="Teléfono del negocio">
+				</label>
+
+				<label>
+					Estado
+					<select class="form-input" [(ngModel)]="establishmentForm.activo">
+						<option [ngValue]="true">Activo</option>
+						<option [ngValue]="false">Inactivo</option>
+					</select>
+				</label>
+
+				<label class="full-width">
+					Dirección
+					<input class="form-input" [(ngModel)]="establishmentForm.direccion" placeholder="Dirección del negocio">
+				</label>
+
+				<label class="full-width">
+					Descripción interna
+					<textarea
+						class="form-input"
+						rows="3"
+						[(ngModel)]="establishmentForm.descripcion"
+						placeholder="Descripción general"></textarea>
+				</label>
+			</div>
+
+			<button class="btn-primary" type="button" [disabled]="isSavingEstablishment" (click)="saveEstablishment()">
+				{{ isSavingEstablishment ? 'Guardando...' : 'Guardar establecimiento' }}
+			</button>
+		</section>
+
+		<section class="card form-card">
+			<h2>Perfil público</h2>
+			<p class="hint">Esta información se muestra a los clientes en tu perfil.</p>
+
+			<div class="form-grid">
+				<label class="full-width">
+					Descripción pública
+					<textarea
+						class="form-input"
+						rows="4"
+						[(ngModel)]="publicProfileForm.descripcion_publica"
+						placeholder="Describe tu negocio para los clientes"></textarea>
+				</label>
+
+				<label>
+					URL de logo
+					<input class="form-input" [(ngModel)]="publicProfileForm.imagen_logo" placeholder="https://...">
+				</label>
+
+				<label>
+					URL de portada
+					<input class="form-input" [(ngModel)]="publicProfileForm.imagen_portada" placeholder="https://...">
+				</label>
+			</div>
+
+			<button class="btn-primary" type="button" [disabled]="isSavingProfile" (click)="savePublicProfile()">
+				{{ isSavingProfile ? 'Guardando...' : 'Guardar perfil público' }}
+			</button>
+		</section>
+	</ng-container>
+</div>

@@ -1,70 +1,50 @@
-<div class="dashboard-container">
-    <header class="dashboard-header">
-      <h1>Agenda de Citas</h1>
-      <p>Gestiona tus citas de manera eficiente.</p>
-    </header>
-  
-    <section class="dashboard-filters">
-      <h2>Filtros</h2>
-      <div class="filters-grid">
-        <label>
-          Fecha:
-          <input type="date" class="filter-input" />
-        </label>
-        <label>
-          Servicio:
-          <select class="filter-input">
-            <option value="">Todos</option>
-            <option value="barberia">Barbería</option>
-            <option value="estetica">Estética</option>
-            <option value="unas">Uñas Acrílicas</option>
-            <option value="faciales">Faciales</option>
-          </select>
-        </label>
-        <label>
-          Estado:
-          <select class="filter-input">
-            <option value="">Todos</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="confirmada">Confirmada</option>
-            <option value="cancelada">Cancelada</option>
-          </select>
-        </label>
+<div class="home-container">
+  <header class="home-header">
+    <h1>Mis Negocios</h1>
+    <p>Administra tus establecimientos, servicios y perfil público.</p>
+  </header>
+
+  <app-alert
+    [message]="errorMessage"
+    [type]="'error'"
+    [show]="!!errorMessage">
+  </app-alert>
+
+  <section *ngIf="!isLoading && !!errorMessage && establishments.length === 0" class="empty-state">
+    <h2>No pudimos cargar tus establecimientos</h2>
+    <p>Intenta nuevamente en unos segundos.</p>
+    <button type="button" class="btn-secondary" (click)="retryLoad()">Reintentar</button>
+  </section>
+
+  <section *ngIf="!isLoading && !errorMessage && establishments.length === 0" class="empty-state">
+    <h2>Aún no tienes establecimientos</h2>
+    <p>Completa la configuración inicial para poder gestionar tus servicios.</p>
+    <a routerLink="/setup/establishment" class="btn-primary">Ir a configuración</a>
+  </section>
+
+  <section *ngIf="establishments.length > 0" class="establishments-grid">
+    <article
+      class="establishment-card"
+      *ngFor="let establishment of establishments; trackBy: trackByEstablishmentId">
+      <div class="card-header">
+        <h2>{{ establishment.nombre }}</h2>
+        <span class="badge" [class.inactive]="!establishment.activo">
+          {{ establishment.activo ? 'Activo' : 'Inactivo' }}
+        </span>
       </div>
-      <button class="btn-primary">Aplicar Filtros</button>
-    </section>
-  
-    <section class="dashboard-agenda">
-      <h2>Citas Programadas</h2>
-      <div class="agenda-table">
-        <div class="agenda-header">
-          <span>Hora</span>
-          <span>Cliente</span>
-          <span>Servicio</span>
-          <span>Estado</span>
-        </div>
-        <div class="agenda-row">
-          <span>10:00 AM</span>
-          <span>Juan Pérez</span>
-          <span>Barbería</span>
-          <span>Pendiente</span>
-        </div>
-        <div class="agenda-row">
-          <span>11:30 AM</span>
-          <span>María López</span>
-          <span>Facial</span>
-          <span>Confirmada</span>
-        </div>
-        <div class="agenda-row">
-          <span>01:00 PM</span>
-          <span>Carlos García</span>
-          <span>Uñas Acrílicas</span>
-          <span>Cancelada</span>
-        </div>
-      </div>
-    </section>
-  
-    <footer class="dashboard-footer">
-      <p>&copy; 2026 Booksmart. Todos los derechos reservados.</p>
-    </footer>
-  </div>
+
+      <p class="description" *ngIf="establishment.descripcion">{{ establishment.descripcion }}</p>
+      <p class="description muted" *ngIf="!establishment.descripcion">Sin descripción</p>
+
+      <ul class="meta-list">
+        <li><strong>Dirección:</strong> {{ establishment.direccion || 'Sin dirección' }}</li>
+        <li><strong>Teléfono:</strong> {{ establishment.telefono || 'Sin teléfono' }}</li>
+      </ul>
+    </article>
+  </section>
+
+  <section *ngIf="establishments.length > 0" class="quick-actions">
+    <a routerLink="/app/services" class="btn-primary">Gestionar servicios</a>
+    <a routerLink="/app/profile" class="btn-secondary">Editar perfil del negocio</a>
+  </section>
+</div>

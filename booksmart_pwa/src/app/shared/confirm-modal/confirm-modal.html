@@ -1,0 +1,22 @@
+<div
+  *ngIf="show"
+  class="modal-backdrop"
+  role="presentation"
+  (click)="onBackdropClick($event)">
+  <section class="modal-card" role="dialog" aria-modal="true" [attr.aria-label]="title">
+    <h3>{{ title }}</h3>
+    <p>{{ message }}</p>
+
+    <div class="actions">
+      <button type="button" class="btn-secondary" (click)="cancel.emit()">
+        {{ cancelText }}
+      </button>
+      <button
+        type="button"
+        [class]="danger ? 'btn-danger' : 'btn-primary'"
+        (click)="confirm.emit()">
+        {{ confirmText }}
+      </button>
+    </div>
+  </section>
+</div>

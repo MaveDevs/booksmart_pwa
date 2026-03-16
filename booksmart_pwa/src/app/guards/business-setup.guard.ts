@@ -1,6 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { map, catchError } from 'rxjs';
+import { map, catchError, of } from 'rxjs';
 import { Auth } from '../services/auth/auth';
 import { Establishments } from '../services/establishments/establishments';
 
@@ -22,7 +22,7 @@ export const businessSetupGuard: CanActivateFn = () => {
       return true;
     }),
     catchError(() => {
-      return [router.createUrlTree(['/setup/establishment'])];
+      return of(router.createUrlTree(['/setup/establishment']));
     })
   );
 };
