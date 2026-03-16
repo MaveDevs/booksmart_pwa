@@ -17,12 +17,13 @@ export interface RegisterRequest {
 }
 
 export interface User {
-  id: number;
+  usuario_id: number;
   nombre: string;
   apellido: string;
   correo: string;
-  rol_id: number;
+  rol_id: number | null;
   activo: boolean;
+  fecha_creacion?: string;
 }
 
 export interface AuthResponse {
@@ -52,11 +53,7 @@ export class Auth {
   }
 
   register(userData: RegisterRequest): Observable<User> {
-    // Registro temporalmente deshabilitado
-    return new Observable(observer => {
-      observer.error(new Error('El registro está temporalmente deshabilitado.'));
-    });
-    // return this.api.post<User>('/api/v1/users/', userData);
+    return this.api.post<User>('/api/v1/users/', userData);
   }
 
   logout(): Observable<any> {
@@ -66,9 +63,13 @@ export class Auth {
   }
 
   getCurrentUser(): Observable<User> {
-    return this.api.get<User>('/api/v1/auth/me').pipe(
+    return this.api.get<User>('/api/v1/users/me').pipe(
       tap(user => this.setUser(user))
     );
+  }
+
+  fetchCurrentUser(): Observable<User> {
+    return this.getCurrentUser();
   }
 
   // Métodos auxiliares para manejar tokens
@@ -110,6 +111,10 @@ export class Auth {
     }
   }
 
+  isOwner(): boolean {
+    return this.currentUser?.rol_id === 2;
+  }
+
   // Verificar si el usuario tiene un rol específico
   hasRole(roleId: number): boolean {
     return this.currentUser?.rol_id === roleId;
@@ -117,7 +122,8 @@ export class Auth {
 
   // Verificar si el usuario tiene uno de varios roles permitidos
   hasAnyRole(roleIds: number[]): boolean {
-    return this.currentUser ? roleIds.includes(this.currentUser.rol_id) : false;
+    if (!this.currentUser || this.currentUser.rol_id === null) return false;
+    return roleIds.includes(this.currentUser.rol_id);
   }
 
   // Verificar si el usuario está activo

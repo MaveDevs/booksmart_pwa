@@ -1,0 +1,76 @@
+<div class="setup-container">
+  <div class="setup-card">
+    <div class="setup-header">
+      <h1>Booksmart</h1>
+      <h2>Registra tu Negocio</h2>
+      <p class="setup-subtitle">
+        Para continuar, da de alta tu establecimiento. Solo necesitas el nombre para empezar.
+      </p>
+    </div>
+
+    <app-alert
+      [message]="errorMessage"
+      [type]="'error'"
+      [show]="!!errorMessage">
+    </app-alert>
+
+    <form (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="nombre">Nombre del negocio <span class="required">*</span></label>
+        <input
+          type="text"
+          id="nombre"
+          [(ngModel)]="nombre"
+          name="nombre"
+          placeholder="Ej. Barbería El Estilo"
+          [disabled]="isLoading"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="descripcion">Descripción</label>
+        <input
+          type="text"
+          id="descripcion"
+          [(ngModel)]="descripcion"
+          name="descripcion"
+          placeholder="Breve descripción de tu negocio"
+          [disabled]="isLoading"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="direccion">Dirección</label>
+        <input
+          type="text"
+          id="direccion"
+          [(ngModel)]="direccion"
+          name="direccion"
+          placeholder="Calle, número, colonia..."
+          [disabled]="isLoading"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="telefono">Teléfono de contacto</label>
+        <input
+          type="tel"
+          id="telefono"
+          [(ngModel)]="telefono"
+          name="telefono"
+          placeholder="10 dígitos"
+          [disabled]="isLoading"
+        >
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="isLoading">
+        {{ isLoading ? 'Guardando...' : 'Crear mi negocio' }}
+      </button>
+    </form>
+
+    <p class="setup-footer">
+      <button type="button" class="btn-link" (click)="onLogout()">Cerrar sesión</button>
+    </p>
+  </div>
+</div>

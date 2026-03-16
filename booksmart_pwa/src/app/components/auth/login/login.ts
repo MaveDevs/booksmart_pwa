@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Auth, LoginRequest } from '../../../services/auth/auth';
+import { Establishments } from '../../../services/establishments/establishments';
 import { Alert } from '../../../shared/alert/alert';
 
 @Component({
@@ -19,12 +20,11 @@ export class Login {
 
   constructor(
     private router: Router,
-    private authService: Auth
+    private authService: Auth,
+    private establishmentsService: Establishments
   ) {}
 
   onLogin() {
-    console.log('🔵 onLogin iniciado');
-    
     if (!this.email || !this.password) {
       this.errorMessage = 'Por favor completa todos los campos';
       return;
@@ -38,20 +38,25 @@ export class Login {
       password: this.password
     };
 
-    console.log('🚀 Enviando credenciales:', { email: this.email });
-
     this.authService.login(credentials).subscribe({
       next: (response) => {
-        console.log('✅ Login exitoso:', response);
         this.authService.saveToken(response.access_token);
-        console.log('🔑 Token guardado, redirigiendo...');
-        this.router.navigate(['/app/home']);
+
+        // Fetch user profile and then check if they have an establishment
+        this.authService.fetchCurrentUser().subscribe({
+          next: (user) => {
+            this.authService.setUser(user);
+            this.checkEstablishmentsAndNavigate(user.usuario_id);
+          },
+          error: () => {
+            // Can't fetch profile but token is valid — go to setup as fallback
+            this.isLoading = false;
+            this.router.navigate(['/setup/establishment']);
+          }
+        });
       },
       error: (error) => {
-        console.error('❌ Error en login:', error);
-        
-        // Siempre mostrar mensaje en español, ignorar mensajes del servidor
-        if (error.status === 401 || error.status === 422) {
+        if (error.status === 401 || error.status === 422 || error.status === 400) {
           this.errorMessage = 'Correo o contraseña incorrectos';
         } else if (error.status === 404) {
           this.errorMessage = 'Usuario no encontrado';
@@ -60,10 +65,24 @@ export class Login {
         } else {
           this.errorMessage = 'Error al iniciar sesión. Intenta de nuevo';
         }
-        
         this.isLoading = false;
-        console.log('❌ isLoading establecido en false');
-        console.log('❌ Mensaje de error:', this.errorMessage);
+      }
+    });
+  }
+
+  private checkEstablishmentsAndNavigate(userId: number): void {
+    this.establishmentsService.getMyEstablishments(userId).subscribe({
+      next: (establishments) => {
+        this.isLoading = false;
+        if (establishments.length === 0) {
+          this.router.navigate(['/setup/establishment']);
+        } else {
+          this.router.navigate(['/app/home']);
+        }
+      },
+      error: () => {
+        this.isLoading = false;
+        this.router.navigate(['/setup/establishment']);
       }
     });
   }

@@ -51,7 +51,7 @@ export class Register {
       nombre: this.nombre,
       apellido: this.apellido,
       correo: this.correo,
-      rol_id: 1, // Rol por defecto
+      rol_id: 2, // Rol dueño de negocio
       activo: true,
       contrasena: this.password
     };
