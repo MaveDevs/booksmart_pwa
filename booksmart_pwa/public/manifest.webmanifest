@@ -1,7 +1,10 @@
 {
+  "id": "/booksmart_pwa/",
   "name": "BookSmart",
   "short_name": "BookSmart",
   "display": "standalone",
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff",
   "scope": "./",
   "start_url": "./",
   "icons": [
