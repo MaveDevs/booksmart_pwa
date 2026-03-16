@@ -1,0 +1,415 @@
+<div class="negocio-container">
+
+  <!-- Loading -->
+  <div class="card" *ngIf="isLoadingEstablishment">
+    <p>Cargando negocio...</p>
+  </div>
+
+  <!-- Error loading -->
+  <div class="card" *ngIf="!isLoadingEstablishment && !establishment">
+    <p>No se pudo cargar este negocio. <a routerLink="/app/home">Volver al inicio</a></p>
+  </div>
+
+  <!-- Main content -->
+  <ng-container *ngIf="!isLoadingEstablishment && establishment">
+
+    <!-- Header -->
+    <header class="negocio-header">
+      <button class="btn-back" type="button" (click)="goBack()">← Mis Negocios</button>
+      <div class="negocio-title-row">
+        <h1>{{ establishment.nombre }}</h1>
+        <span class="badge" [class.inactive]="!establishment.activo">
+          {{ establishment.activo ? 'Activo' : 'Inactivo' }}
+        </span>
+      </div>
+    </header>
+
+    <!-- Alerts -->
+    <app-alert [message]="errorMessage" [type]="'error'" [show]="!!errorMessage"></app-alert>
+    <app-alert [message]="successMessage" [type]="'success'" [show]="!!successMessage"></app-alert>
+
+    <!-- Tabs Navigation -->
+    <nav class="negocio-tabs">
+      <button class="tab-btn" [class.active]="activeTab === 'general'" type="button" (click)="setTab('general')">General</button>
+      <button class="tab-btn" [class.active]="activeTab === 'servicios'" type="button" (click)="setTab('servicios')">Servicios</button>
+      <button class="tab-btn" [class.active]="activeTab === 'horarios'" type="button" (click)="setTab('horarios')">Horarios</button>
+      <button class="tab-btn" [class.active]="activeTab === 'calendario'" type="button" (click)="setTab('calendario')">Calendario</button>
+      <button class="tab-btn" [class.active]="activeTab === 'mensajes'" type="button" (click)="setTab('mensajes')">Mensajes</button>
+      <button class="tab-btn" [class.active]="activeTab === 'resenas'" type="button" (click)="setTab('resenas')">Reseñas</button>
+      <button class="tab-btn" [class.active]="activeTab === 'suscripcion'" type="button" (click)="setTab('suscripcion')">Suscripción</button>
+    </nav>
+
+    <!-- ═══════════════════════ TAB: GENERAL ═══════════════════════ -->
+    <div class="tab-content" *ngIf="activeTab === 'general'">
+
+      <section class="card form-card">
+        <h2>Datos del establecimiento</h2>
+        <div class="form-grid">
+          <label>
+            Nombre
+            <input class="form-input" [(ngModel)]="establishmentForm.nombre">
+          </label>
+          <label>
+            Teléfono
+            <input class="form-input" [(ngModel)]="establishmentForm.telefono" placeholder="Teléfono del negocio">
+          </label>
+          <label>
+            Estado
+            <select class="form-input" [(ngModel)]="establishmentForm.activo">
+              <option [ngValue]="true">Activo</option>
+              <option [ngValue]="false">Inactivo</option>
+            </select>
+          </label>
+          <label class="full-width">
+            Dirección
+            <input class="form-input" [(ngModel)]="establishmentForm.direccion" placeholder="Dirección del negocio">
+          </label>
+          <label class="full-width">
+            Descripción interna
+            <textarea class="form-input" rows="3" [(ngModel)]="establishmentForm.descripcion" placeholder="Descripción general"></textarea>
+          </label>
+        </div>
+        <button class="btn-primary" type="button" [disabled]="isSavingEstablishment" (click)="saveEstablishment()">
+          {{ isSavingEstablishment ? 'Guardando...' : 'Guardar establecimiento' }}
+        </button>
+      </section>
+
+      <section class="card form-card">
+        <h2>Perfil público</h2>
+        <p class="hint">Esta información se muestra a los clientes en tu perfil.</p>
+        <div class="form-grid">
+          <label class="full-width">
+            Descripción pública
+            <textarea class="form-input" rows="4" [(ngModel)]="publicProfileForm.descripcion_publica" placeholder="Describe tu negocio para los clientes"></textarea>
+          </label>
+          <label>
+            URL de logo
+            <input class="form-input" [(ngModel)]="publicProfileForm.imagen_logo" placeholder="https://...">
+          </label>
+          <label>
+            URL de portada
+            <input class="form-input" [(ngModel)]="publicProfileForm.imagen_portada" placeholder="https://...">
+          </label>
+        </div>
+        <button class="btn-primary" type="button" [disabled]="isSavingProfile" (click)="savePublicProfile()">
+          {{ isSavingProfile ? 'Guardando...' : 'Guardar perfil público' }}
+        </button>
+      </section>
+
+    </div>
+
+    <!-- ═══════════════════════ TAB: SERVICIOS ═══════════════════════ -->
+    <div class="tab-content" *ngIf="activeTab === 'servicios'">
+
+      <section class="card">
+        <div class="section-head">
+          <h2>Servicios ofrecidos</h2>
+          <button class="btn-primary" type="button" (click)="showServiceForm = !showServiceForm">
+            {{ showServiceForm ? 'Cancelar' : '+ Nuevo servicio' }}
+          </button>
+        </div>
+
+        <div class="form-card" *ngIf="showServiceForm">
+          <h3>Crear servicio</h3>
+          <div class="form-grid">
+            <label>
+              Nombre
+              <input class="form-input" [(ngModel)]="newService.nombre" placeholder="Ej. Corte clásico">
+            </label>
+            <label>
+              Duración (min)
+              <input class="form-input" type="number" [(ngModel)]="newService.duracion" min="1">
+            </label>
+            <label>
+              Precio
+              <input class="form-input" type="number" [(ngModel)]="newService.precio" min="0" step="0.01">
+            </label>
+            <label>
+              Estado
+              <select class="form-input" [(ngModel)]="newService.activo">
+                <option [ngValue]="true">Activo</option>
+                <option [ngValue]="false">Inactivo</option>
+              </select>
+            </label>
+            <label class="full-width">
+              Descripción
+              <textarea class="form-input" rows="3" [(ngModel)]="newService.descripcion" placeholder="Descripción del servicio"></textarea>
+            </label>
+          </div>
+          <button class="btn-primary" type="button" [disabled]="isSubmittingService" (click)="createService()">
+            {{ isSubmittingService ? 'Creando...' : 'Crear servicio' }}
+          </button>
+        </div>
+
+        <p *ngIf="isLoadingServices">Cargando servicios...</p>
+        <p *ngIf="!isLoadingServices && services.length === 0">No hay servicios registrados para este negocio.</p>
+
+        <div class="service-list" *ngIf="services.length > 0">
+          <article class="service-item" *ngFor="let service of services; trackBy: trackByServiceId">
+            <ng-container *ngIf="editingServiceId !== service.servicio_id; else editMode">
+              <div class="service-head">
+                <h3>{{ service.nombre }}</h3>
+                <span class="badge" [class.inactive]="!service.activo">
+                  {{ service.activo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </div>
+              <p class="description">{{ service.descripcion || 'Sin descripción' }}</p>
+              <p class="meta">{{ service.duracion }} min · ${{ service.precio }}</p>
+              <div class="actions">
+                <button class="btn-secondary" type="button" (click)="startEditService(service)">Editar</button>
+                <button class="btn-danger" type="button" [disabled]="isSubmittingService" (click)="requestDeleteService(service.servicio_id)">Eliminar</button>
+              </div>
+            </ng-container>
+            <ng-template #editMode>
+              <div class="form-grid compact">
+                <label>Nombre<input class="form-input" [(ngModel)]="editService.nombre"></label>
+                <label>Duración (min)<input class="form-input" type="number" min="1" [(ngModel)]="editService.duracion"></label>
+                <label>Precio<input class="form-input" type="number" min="0" step="0.01" [(ngModel)]="editService.precio"></label>
+                <label>Estado
+                  <select class="form-input" [(ngModel)]="editService.activo">
+                    <option [ngValue]="true">Activo</option>
+                    <option [ngValue]="false">Inactivo</option>
+                  </select>
+                </label>
+                <label class="full-width">Descripción
+                  <textarea class="form-input" rows="3" [(ngModel)]="editService.descripcion"></textarea>
+                </label>
+              </div>
+              <div class="actions">
+                <button class="btn-primary" type="button" [disabled]="isSubmittingService" (click)="saveEditService(service.servicio_id)">Guardar</button>
+                <button class="btn-secondary" type="button" (click)="cancelEditService()">Cancelar</button>
+              </div>
+            </ng-template>
+          </article>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ═══════════════════════ TAB: HORARIOS ═══════════════════════ -->
+    <div class="tab-content" *ngIf="activeTab === 'horarios'">
+
+      <section class="card">
+        <h2>Horarios de servicio</h2>
+        <p class="hint">Configura los días y horas en que tu negocio atiende clientes.</p>
+        <p *ngIf="isLoadingAgendas">Cargando horarios...</p>
+        <div class="horarios-list" *ngIf="!isLoadingAgendas">
+          <div class="horario-item" *ngFor="let day of DAYS_OF_WEEK">
+            <ng-container *ngIf="getAgendaForDay(day) as agenda; else closed">
+              <span class="day-label">{{ getDayLabel(day) }}</span>
+              <span class="day-hours">{{ agenda.hora_inicio.substring(0, 5) }} – {{ agenda.hora_fin.substring(0, 5) }}</span>
+              <div class="actions">
+                <button class="btn-secondary" type="button" (click)="openAgendaModal(day)">Editar</button>
+                <button class="btn-danger" type="button" (click)="closeDay(day)">Cerrar</button>
+              </div>
+            </ng-container>
+            <ng-template #closed>
+              <span class="day-label">{{ getDayLabel(day) }}</span>
+              <span class="day-closed">CERRADO</span>
+              <button class="btn-secondary" type="button" (click)="openAgendaModal(day)">Abrir</button>
+            </ng-template>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ═══════════════════════ TAB: CALENDARIO ═══════════════════════ -->
+    <div class="tab-content" *ngIf="activeTab === 'calendario'">
+      <div class="calendario-layout">
+
+        <!-- Calendar grid -->
+        <section class="card">
+          <div class="calendar-nav">
+            <button class="btn-secondary" type="button" (click)="prevMonth()">‹</button>
+            <h2 class="calendar-month-label">{{ calendarMonthLabel | titlecase }}</h2>
+            <button class="btn-secondary" type="button" (click)="nextMonth()">›</button>
+          </div>
+          <div class="calendar-weekdays">
+            <span>Lun</span><span>Mar</span><span>Mié</span>
+            <span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+          </div>
+          <div class="calendar-grid">
+            <button
+              *ngFor="let day of calendarDays; let i = index"
+              class="calendar-day"
+              type="button"
+              [class.empty]="!day"
+              [class.today]="day !== null && isToday(day)"
+              [class.selected]="day !== null && isSelectedDay(day)"
+              [class.has-appointments]="day !== null && getAppointmentsForDay(day).length > 0"
+              [disabled]="!day"
+              (click)="day && selectDay(day)">
+              <span *ngIf="day">{{ day.getDate() }}</span>
+              <span class="appt-dot" *ngIf="day && getAppointmentsForDay(day).length > 0"></span>
+            </button>
+          </div>
+          <p *ngIf="isLoadingAppointments" class="hint">Cargando citas...</p>
+        </section>
+
+        <!-- Day appointments -->
+        <section class="card">
+          <ng-container *ngIf="selectedDay; else noDay">
+            <h2>
+              Citas del {{ selectedDay.getDate() }} de
+              {{ selectedDay.toLocaleDateString('es-ES', { month: 'long' }) }}
+            </h2>
+            <p *ngIf="selectedDayAppointments.length === 0">No hay citas para este día.</p>
+            <div class="appt-list" *ngIf="selectedDayAppointments.length > 0">
+              <article
+                class="appt-item"
+                *ngFor="let appt of selectedDayAppointments; trackBy: trackByAppointmentId"
+                (click)="openAppointmentModal(appt)">
+                <div class="appt-time">{{ appt.hora_inicio.substring(0,5) }} – {{ appt.hora_fin.substring(0,5) }}</div>
+                <div class="appt-info">
+                  <span>Servicio #{{ appt.servicio_id }}</span>
+                  <span>Cliente #{{ appt.cliente_id }}</span>
+                </div>
+                <span class="badge appt-status status-{{ appt.estado | lowercase }}">{{ getStatusLabel(appt.estado) }}</span>
+              </article>
+            </div>
+          </ng-container>
+          <ng-template #noDay>
+            <p class="hint">Selecciona un día del calendario para ver sus citas.</p>
+          </ng-template>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════════════ TAB: MENSAJES ═══════════════════════ -->
+    <div class="tab-content" *ngIf="activeTab === 'mensajes'">
+      <section class="card">
+        <h2>Mensajes</h2>
+        <p class="hint">La mensajería en tiempo real estará disponible próximamente (WebSocket).</p>
+        <p class="hint">Mientras tanto, comunícate con tus clientes desde la sección Calendario → detalle de cita.</p>
+      </section>
+    </div>
+
+    <!-- ═══════════════════════ TAB: RESEÑAS ═══════════════════════ -->
+    <div class="tab-content" *ngIf="activeTab === 'resenas'">
+      <section class="card">
+        <h2>Reseñas y calificaciones</h2>
+        <p *ngIf="isLoadingRatings">Cargando reseñas...</p>
+        <ng-container *ngIf="!isLoadingRatings">
+          <div class="rating-summary" *ngIf="ratings.length > 0">
+            <span class="rating-avg">⭐ {{ averageRating }}</span>
+            <span class="rating-count">de 5 &nbsp;·&nbsp; {{ ratings.length }} reseñas</span>
+          </div>
+          <p *ngIf="ratings.length === 0">Aún no hay reseñas para este negocio.</p>
+          <div class="ratings-list">
+            <article class="rating-item" *ngFor="let rating of ratings; trackBy: trackByRatingId">
+              <div class="rating-head">
+                <span>Usuario #{{ rating.usuario_id }}</span>
+                <span class="rating-stars">{{ rating.calificacion }}⭐</span>
+                <span class="rating-date" *ngIf="rating.fecha">{{ rating.fecha }}</span>
+              </div>
+              <p *ngIf="rating.comentario">{{ rating.comentario }}</p>
+            </article>
+          </div>
+        </ng-container>
+      </section>
+    </div>
+
+    <!-- ═══════════════════════ TAB: SUSCRIPCIÓN ═══════════════════════ -->
+    <div class="tab-content" *ngIf="activeTab === 'suscripcion'">
+      <section class="card">
+        <h2>Tu suscripción</h2>
+        <p *ngIf="isLoadingSubscription">Cargando información de suscripción...</p>
+        <ng-container *ngIf="!isLoadingSubscription">
+          <div class="subscription-info" *ngIf="subscription">
+            <p><strong>Estado:</strong> {{ subscription.estado }}</p>
+            <p *ngIf="subscription.fecha_inicio"><strong>Inicio:</strong> {{ subscription.fecha_inicio }}</p>
+            <p *ngIf="subscription.fecha_expiracion"><strong>Vencimiento:</strong> {{ subscription.fecha_expiracion }}</p>
+          </div>
+          <p *ngIf="!subscription">No tienes una suscripción activa. Contacta al administrador para activar tu plan.</p>
+        </ng-container>
+      </section>
+    </div>
+
+  </ng-container>
+
+  <!-- Confirm: delete service -->
+  <app-confirm-modal
+    [show]="showDeleteServiceModal"
+    [title]="'Eliminar servicio'"
+    [message]="'Esta acción no se puede deshacer. ¿Deseas eliminar este servicio?'"
+    [confirmText]="'Sí, eliminar'"
+    [cancelText]="'Cancelar'"
+    [danger]="true"
+    (confirm)="confirmDeleteService()"
+    (cancel)="cancelDeleteService()">
+  </app-confirm-modal>
+
+  <!-- Modal: edit/open agenda day -->
+  <div class="modal-backdrop" *ngIf="showAgendaModal" (click)="closeAgendaModal()"></div>
+  <div class="modal" *ngIf="showAgendaModal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3>{{ agendaModalExistingId ? 'Editar' : 'Abrir' }} horario – {{ getDayLabel(agendaModalDay!) }}</h3>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <label>
+          Hora inicio
+          <input class="form-input" type="time" [(ngModel)]="agendaForm.hora_inicio">
+        </label>
+        <label>
+          Hora fin
+          <input class="form-input" type="time" [(ngModel)]="agendaForm.hora_fin">
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer actions">
+      <button class="btn-primary" type="button" [disabled]="isSavingAgenda" (click)="saveAgenda()">
+        {{ isSavingAgenda ? 'Guardando...' : 'Guardar' }}
+      </button>
+      <button class="btn-secondary" type="button" (click)="closeAgendaModal()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Modal: appointment detail -->
+  <div class="modal-backdrop" *ngIf="showAppointmentModal" (click)="closeAppointmentModal()"></div>
+  <div class="modal" *ngIf="showAppointmentModal && selectedAppointment" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3>Detalle de cita</h3>
+    </div>
+    <div class="modal-body">
+      <p><strong>Servicio:</strong> #{{ selectedAppointment.servicio_id }}</p>
+      <p><strong>Cliente:</strong> #{{ selectedAppointment.cliente_id }}</p>
+      <p><strong>Fecha:</strong> {{ selectedAppointment.fecha }}</p>
+      <p><strong>Horario:</strong> {{ selectedAppointment.hora_inicio.substring(0,5) }} – {{ selectedAppointment.hora_fin.substring(0,5) }}</p>
+      <p>
+        <strong>Estado:</strong>
+        <span class="badge status-{{ selectedAppointment.estado | lowercase }}">{{ getStatusLabel(selectedAppointment.estado) }}</span>
+      </p>
+    </div>
+    <div class="modal-footer actions">
+      <button
+        class="btn-primary"
+        type="button"
+        *ngIf="selectedAppointment.estado === 'PENDIENTE'"
+        [disabled]="isUpdatingAppointment"
+        (click)="updateAppointmentStatus('CONFIRMADA')">
+        Confirmar cita
+      </button>
+      <button
+        class="btn-primary"
+        type="button"
+        *ngIf="selectedAppointment.estado === 'CONFIRMADA'"
+        [disabled]="isUpdatingAppointment"
+        (click)="updateAppointmentStatus('COMPLETADA')">
+        Marcar completada
+      </button>
+      <button
+        class="btn-danger"
+        type="button"
+        *ngIf="selectedAppointment.estado !== 'CANCELADA' && selectedAppointment.estado !== 'COMPLETADA'"
+        [disabled]="isUpdatingAppointment"
+        (click)="updateAppointmentStatus('CANCELADA')">
+        Cancelar cita
+      </button>
+      <button class="btn-secondary" type="button" (click)="closeAppointmentModal()">Cerrar</button>
+    </div>
+  </div>
+
+</div>

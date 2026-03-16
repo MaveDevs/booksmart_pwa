@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { Auth } from '../../services/auth/auth';
 import { Establishment, Establishments } from '../../services/establishments/establishments';
@@ -16,16 +16,26 @@ export class Home implements OnInit {
   establishments: Establishment[] = [];
   isLoading = true;
   errorMessage = '';
+  userName = '';
 
   private cdr = inject(ChangeDetectorRef);
 
   constructor(
+    private router: Router,
     private authService: Auth,
     private establishmentsService: Establishments
   ) {}
 
   ngOnInit(): void {
+    const user = this.authService.getUser();
+    if (user) {
+      this.userName = user.nombre;
+    }
     this.loadEstablishments();
+  }
+
+  goToNegocio(id: number): void {
+    this.router.navigate(['/app/negocio', id]);
   }
 
   retryLoad(): void {
@@ -58,7 +68,6 @@ export class Home implements OnInit {
             this.errorMessage = 'El servidor tardó demasiado en responder. Verifica tu conexión e inténtalo de nuevo.';
             return;
           }
-
           this.errorMessage =
             error?.error?.detail || 'No se pudieron cargar tus establecimientos.';
         },
@@ -68,5 +77,4 @@ export class Home implements OnInit {
   trackByEstablishmentId(index: number, establishment: Establishment): number {
     return establishment.establecimiento_id;
   }
-
 }

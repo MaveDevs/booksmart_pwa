@@ -54,6 +54,13 @@
   padding: 1rem;
   display: grid;
   gap: 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 12px var(--color-primary-soft);
+  }
 }
 
 .card-header {
@@ -97,6 +104,12 @@
   gap: 0.4rem;
   color: var(--color-text-soft);
   font-size: 0.9rem;
+}
+
+.card-cta {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-primary);
 }
 
 .quick-actions {

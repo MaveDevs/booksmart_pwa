@@ -1,7 +1,7 @@
 <div class="home-container">
   <header class="home-header">
-    <h1>Mis Negocios</h1>
-    <p>Administra tus establecimientos, servicios y perfil público.</p>
+    <h1>Bienvenido{{ userName ? ', ' + userName : '' }}</h1>
+    <p>Selecciona un negocio para gestionarlo o crea uno nuevo.</p>
   </header>
 
   <app-alert
@@ -17,15 +17,16 @@
   </section>
 
   <section *ngIf="!isLoading && !errorMessage && establishments.length === 0" class="empty-state">
-    <h2>Aún no tienes establecimientos</h2>
-    <p>Completa la configuración inicial para poder gestionar tus servicios.</p>
-    <a routerLink="/setup/establishment" class="btn-primary">Ir a configuración</a>
+    <h2>Aún no tienes negocios</h2>
+    <p>Completa la configuración inicial para comenzar a recibir citas.</p>
+    <a routerLink="/setup/establishment" class="btn-primary">Crear mi primer negocio</a>
   </section>
 
   <section *ngIf="establishments.length > 0" class="establishments-grid">
     <article
       class="establishment-card"
-      *ngFor="let establishment of establishments; trackBy: trackByEstablishmentId">
+      *ngFor="let establishment of establishments; trackBy: trackByEstablishmentId"
+      (click)="goToNegocio(establishment.establecimiento_id)">
       <div class="card-header">
         <h2>{{ establishment.nombre }}</h2>
         <span class="badge" [class.inactive]="!establishment.activo">
@@ -40,11 +41,12 @@
         <li><strong>Dirección:</strong> {{ establishment.direccion || 'Sin dirección' }}</li>
         <li><strong>Teléfono:</strong> {{ establishment.telefono || 'Sin teléfono' }}</li>
       </ul>
+
+      <span class="card-cta">Ver negocio →</span>
     </article>
   </section>
 
-  <section *ngIf="establishments.length > 0" class="quick-actions">
-    <a routerLink="/app/services" class="btn-primary">Gestionar servicios</a>
-    <a routerLink="/app/profile" class="btn-secondary">Editar perfil del negocio</a>
+  <section *ngIf="!isLoading" class="quick-actions">
+    <a routerLink="/setup/establishment" class="btn-primary">+ Crear nuevo negocio</a>
   </section>
 </div>
