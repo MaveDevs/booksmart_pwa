@@ -1,0 +1,17 @@
+@if (show()) {
+  <div class="update-banner" role="alert">
+    <div class="update-content">
+      <span class="update-icon">🔄</span>
+      <span class="update-text">
+        <strong>Nueva versión disponible</strong>
+        Actualiza para obtener las últimas mejoras.
+      </span>
+    </div>
+    <div class="update-actions">
+      <button class="btn-update" (click)="reload()" [disabled]="isReloading()">
+        {{ isReloading() ? 'Actualizando…' : 'Actualizar ahora' }}
+      </button>
+      <button class="btn-dismiss" (click)="dismiss()" [disabled]="isReloading()">Luego</button>
+    </div>
+  </div>
+}

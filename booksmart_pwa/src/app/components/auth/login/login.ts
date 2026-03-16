@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Auth, LoginRequest } from '../../../services/auth/auth';
 import { Establishments } from '../../../services/establishments/establishments';
+import { PushNotifications } from '../../../services/push-notifications/push-notifications';
 import { Alert } from '../../../shared/alert/alert';
 
 @Component({
@@ -21,7 +22,8 @@ export class Login {
   constructor(
     private router: Router,
     private authService: Auth,
-    private establishmentsService: Establishments
+    private establishmentsService: Establishments,
+    private pushNotifications: PushNotifications
   ) {}
 
   onLogin() {
@@ -50,6 +52,7 @@ export class Login {
           next: (user) => {
             console.log('[Login] 👤 Usuario obtenido:', user);
             this.authService.setUser(user);
+            this.pushNotifications.subscribeAndRegister();
             this.checkEstablishmentsAndNavigate(user.usuario_id);
           },
           error: (err) => {
