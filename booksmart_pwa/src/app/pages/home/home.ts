@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -16,6 +16,8 @@ export class Home implements OnInit {
   establishments: Establishment[] = [];
   isLoading = true;
   errorMessage = '';
+
+  private cdr = inject(ChangeDetectorRef);
 
   constructor(
     private authService: Auth,
@@ -43,7 +45,10 @@ export class Home implements OnInit {
 
     this.establishmentsService
       .getMyEstablishments(user.usuario_id)
-      .pipe(finalize(() => (this.isLoading = false)))
+      .pipe(finalize(() => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      }))
       .subscribe({
         next: (establishments) => {
           this.establishments = Array.isArray(establishments) ? establishments : [];

@@ -3,6 +3,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Auth } from '../../../services/auth/auth';
 import { ConfirmModal } from '../../../shared/confirm-modal/confirm-modal';
 import { Theme } from '../../../services/theme/theme';
+import { clearBusinessSetupGuardCache } from '../../../guards/business-setup.guard';
 
 @Component({
   selector: 'app-navbar',
@@ -37,6 +38,7 @@ export class Navbar {
 
   confirmLogout(): void {
     this.showLogoutConfirmModal = false;
+    clearBusinessSetupGuardCache();
     this.authService.removeToken();
     this.authService.removeUser();
     this.router.navigate(['/login']);

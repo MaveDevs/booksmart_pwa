@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
@@ -26,6 +26,8 @@ export class AgendasPage implements OnInit {
   isLoadingAppointments = false;
 
   errorMessage = '';
+
+  private cdr = inject(ChangeDetectorRef);
 
   private readonly dayLabels: Record<string, string> = {
     LUNES: 'Lunes',
@@ -87,7 +89,10 @@ export class AgendasPage implements OnInit {
 
     this.establishmentsService
       .getMyEstablishments(user.usuario_id)
-      .pipe(finalize(() => (this.isLoadingEstablishments = false)))
+      .pipe(finalize(() => {
+        this.isLoadingEstablishments = false;
+        this.cdr.markForCheck();
+      }))
       .subscribe({
         next: (establishments) => {
           const normalizedEstablishments = Array.isArray(establishments) ? establishments : [];
@@ -116,7 +121,10 @@ export class AgendasPage implements OnInit {
 
     this.agendasService
       .getByEstablishment(this.selectedEstablishmentId)
-      .pipe(finalize(() => (this.isLoadingAgendas = false)))
+      .pipe(finalize(() => {
+        this.isLoadingAgendas = false;
+        this.cdr.markForCheck();
+      }))
       .subscribe({
         next: (agendas) => {
           this.agendas = Array.isArray(agendas) ? agendas : [];
@@ -132,7 +140,10 @@ export class AgendasPage implements OnInit {
 
     this.appointmentsService
       .getMine()
-      .pipe(finalize(() => (this.isLoadingAppointments = false)))
+      .pipe(finalize(() => {
+        this.isLoadingAppointments = false;
+        this.cdr.markForCheck();
+      }))
       .subscribe({
         next: (appointments) => {
           this.appointments = Array.isArray(appointments) ? appointments : [];
