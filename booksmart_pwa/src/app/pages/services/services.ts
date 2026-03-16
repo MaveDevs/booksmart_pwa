@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
@@ -48,6 +48,8 @@ export class Services implements OnInit {
   pendingDeleteServiceId: number | null = null;
   errorMessage = '';
   successMessage = '';
+
+  private cdr = inject(ChangeDetectorRef);
 
   constructor(
     private authService: Auth,
@@ -107,12 +109,14 @@ export class Services implements OnInit {
           activo: true,
         };
         this.isSubmitting = false;
+        this.cdr.markForCheck();
         this.loadServices();
       },
       error: (error) => {
         this.errorMessage =
           error?.error?.detail || 'No se pudo crear el servicio.';
         this.isSubmitting = false;
+        this.cdr.markForCheck();
       },
     });
   }
@@ -165,12 +169,14 @@ export class Services implements OnInit {
         this.successMessage = 'Servicio actualizado correctamente.';
         this.isSubmitting = false;
         this.editingServiceId = null;
+        this.cdr.markForCheck();
         this.loadServices();
       },
       error: (error) => {
         this.errorMessage =
           error?.error?.detail || 'No se pudo actualizar el servicio.';
         this.isSubmitting = false;
+        this.cdr.markForCheck();
       },
     });
   }
@@ -206,12 +212,14 @@ export class Services implements OnInit {
       next: () => {
         this.successMessage = 'Servicio eliminado correctamente.';
         this.isSubmitting = false;
+        this.cdr.markForCheck();
         this.loadServices();
       },
       error: (error) => {
         this.errorMessage =
           error?.error?.detail || 'No se pudo eliminar el servicio.';
         this.isSubmitting = false;
+        this.cdr.markForCheck();
       },
     });
   }
@@ -230,7 +238,10 @@ export class Services implements OnInit {
 
     this.establishmentsService
       .getMyEstablishments(user.usuario_id)
-      .pipe(finalize(() => (this.isLoadingEstablishments = false)))
+      .pipe(finalize(() => {
+        this.isLoadingEstablishments = false;
+        this.cdr.markForCheck();
+      }))
       .subscribe({
         next: (establishments) => {
           const normalizedEstablishments = Array.isArray(establishments) ? establishments : [];
@@ -261,7 +272,10 @@ export class Services implements OnInit {
     this.isLoadingServices = true;
     this.businessServicesApi
       .getByEstablishment(this.selectedEstablishmentId)
-      .pipe(finalize(() => (this.isLoadingServices = false)))
+      .pipe(finalize(() => {
+        this.isLoadingServices = false;
+        this.cdr.markForCheck();
+      }))
       .subscribe({
         next: (services) => {
           this.services = Array.isArray(services) ? services : [];

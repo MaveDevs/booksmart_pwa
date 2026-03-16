@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
@@ -47,6 +47,8 @@ export class Profile implements OnInit {
   errorMessage = '';
   successMessage = '';
 
+  private cdr = inject(ChangeDetectorRef);
+
   constructor(
     private authService: Auth,
     private establishmentsService: Establishments,
@@ -94,11 +96,13 @@ export class Profile implements OnInit {
           );
           this.successMessage = 'Datos del establecimiento actualizados.';
           this.isSavingEstablishment = false;
+          this.cdr.markForCheck();
         },
         error: (error) => {
           this.errorMessage =
             error?.error?.detail || 'No se pudo actualizar el establecimiento.';
           this.isSavingEstablishment = false;
+          this.cdr.markForCheck();
         },
       });
   }
@@ -125,11 +129,13 @@ export class Profile implements OnInit {
           this.currentProfile = profile;
           this.successMessage = 'Perfil público actualizado.';
           this.isSavingProfile = false;
+          this.cdr.markForCheck();
         },
         error: (error) => {
           this.errorMessage =
             error?.error?.detail || 'No se pudo actualizar el perfil público.';
           this.isSavingProfile = false;
+          this.cdr.markForCheck();
         },
       });
       return;
@@ -145,11 +151,13 @@ export class Profile implements OnInit {
         this.currentProfile = profile;
         this.successMessage = 'Perfil público creado.';
         this.isSavingProfile = false;
+        this.cdr.markForCheck();
       },
       error: (error) => {
         this.errorMessage =
           error?.error?.detail || 'No se pudo crear el perfil público.';
         this.isSavingProfile = false;
+        this.cdr.markForCheck();
       },
     });
   }
@@ -164,7 +172,10 @@ export class Profile implements OnInit {
 
     this.establishmentsService
       .getMyEstablishments(user.usuario_id)
-      .pipe(finalize(() => (this.isLoading = false)))
+      .pipe(finalize(() => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      }))
       .subscribe({
         next: (establishments) => {
           const normalizedEstablishments = Array.isArray(establishments) ? establishments : [];
@@ -221,6 +232,7 @@ export class Profile implements OnInit {
           imagen_logo: current?.imagen_logo || '',
           imagen_portada: current?.imagen_portada || '',
         };
+        this.cdr.markForCheck();
       },
       error: () => {
         this.currentProfile = null;
@@ -229,6 +241,7 @@ export class Profile implements OnInit {
           imagen_logo: '',
           imagen_portada: '',
         };
+        this.cdr.markForCheck();
       },
     });
   }
