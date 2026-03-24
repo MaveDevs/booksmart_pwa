@@ -33,16 +33,18 @@ import {
   AppointmentStatus,
 } from '../../services/appointments/appointments';
 import { Rating, Ratings } from '../../services/ratings/ratings';
-import { BusinessSubscription, Subscriptions } from '../../services/subscriptions/subscriptions';
+import { Subscription, SubscriptionsService } from '../../services/subscriptions/subscriptions';
 import { Alert } from '../../shared/alert/alert';
 import { ConfirmModal } from '../../shared/confirm-modal/confirm-modal';
+import { PlansList } from '../../components/plans-list/plans-list';
+import { CurrentSubscription } from '../../components/current-subscription/current-subscription';
 
 type TabId = 'general' | 'servicios' | 'horarios' | 'calendario' | 'resenas' | 'suscripcion';
 
 @Component({
   selector: 'app-negocio',
   standalone: true,
-  imports: [CommonModule, FormsModule, Alert, ConfirmModal, RouterLink],
+  imports: [CommonModule, FormsModule, Alert, ConfirmModal, RouterLink, PlansList, CurrentSubscription],
   templateUrl: './negocio.html',
   styleUrl: './negocio.scss',
 })
@@ -105,7 +107,7 @@ export class Negocio implements OnInit {
   isLoadingRatings = false;
 
   // --- Suscripción tab ---
-  subscription: BusinessSubscription | null = null;
+  subscription: Subscription | null = null;
   isLoadingSubscription = false;
 
   errorMessage = '';
@@ -122,7 +124,7 @@ export class Negocio implements OnInit {
     private agendasService: Agendas,
     private appointmentsService: Appointments,
     private ratingsService: Ratings,
-    private subscriptionsService: Subscriptions,
+    private subscriptionsService: SubscriptionsService,
   ) {}
 
   ngOnInit(): void {

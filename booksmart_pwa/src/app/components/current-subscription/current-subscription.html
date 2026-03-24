@@ -1,0 +1,58 @@
+<div class="subscription-container">
+  <h2>Suscripción Actual</h2>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    Cargando suscripción...
+  </div>
+
+  <div *ngIf="!isLoading && subscription && plan" class="subscription-info">
+    <div class="subscription-header">
+      <div class="plan-name">
+        <h3>{{ plan.nombre }}</h3>
+        <span class="badge" [ngClass]="getStatusBadgeClass()">
+          {{ getStatusLabel(subscription.estado) }}
+        </span>
+      </div>
+      <div class="plan-price">
+        <p class="price">{{ getPriceFormatted(plan.precio) }}/mes</p>
+      </div>
+    </div>
+
+    <div class="subscription-details">
+      <div class="detail-item">
+        <span class="label">Plan:</span>
+        <span class="value">{{ plan.nombre }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="label">Descripción:</span>
+        <span class="value">{{ plan.descripcion }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="label">Desde:</span>
+        <span class="value">{{ formatDate(subscription.fecha_inicio) }}</span>
+      </div>
+      <div *ngIf="subscription.fecha_fin" class="detail-item">
+        <span class="label">Hasta:</span>
+        <span class="value">{{ formatDate(subscription.fecha_fin) }}</span>
+        <span *ngIf="daysUntilExpiration() !== null" class="expiration-warning" [class.critical]="daysUntilExpiration()! <= 7">
+          ({{ daysUntilExpiration() }} días)
+        </span>
+      </div>
+      <div class="detail-item">
+        <span class="label">Estado:</span>
+        <span class="value" [ngClass]="'status-' + subscription.estado.toLowerCase()">
+          {{ getStatusLabel(subscription.estado) }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && !subscription" class="no-subscription">
+    <p>No tienes un plan activo.</p>
+    <p class="hint">Selecciona un plan en la sección de planes disponibles.</p>
+  </div>
+</div>

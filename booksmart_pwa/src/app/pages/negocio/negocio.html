@@ -318,16 +318,8 @@
     <!-- ═══════════════════════ TAB: SUSCRIPCIÓN ═══════════════════════ -->
     <div class="tab-content" *ngIf="activeTab === 'suscripcion'">
       <section class="card">
-        <h2>Tu suscripción</h2>
-        <p *ngIf="isLoadingSubscription">Cargando información de suscripción...</p>
-        <ng-container *ngIf="!isLoadingSubscription">
-          <div class="subscription-info" *ngIf="subscription">
-            <p><strong>Estado:</strong> {{ subscription.estado }}</p>
-            <p *ngIf="subscription.fecha_inicio"><strong>Inicio:</strong> {{ subscription.fecha_inicio }}</p>
-            <p *ngIf="subscription.fecha_expiracion"><strong>Vencimiento:</strong> {{ subscription.fecha_expiracion }}</p>
-          </div>
-          <p *ngIf="!subscription">No tienes una suscripción activa. Contacta al administrador para activar tu plan.</p>
-        </ng-container>
+        <app-current-subscription [establishmentId]="establishmentId"></app-current-subscription>
+        <app-plans-list [establishmentId]="establishmentId" [currentSubscriptionPlanId]="subscription?.plan_id"></app-plans-list>
       </section>
     </div>
 
