@@ -1,6 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
 import { Auth } from '../../../services/auth/auth';
 import { Establishments, EstablishmentCreate } from '../../../services/establishments/establishments';
 import { Alert } from '../../../shared/alert/alert';
@@ -8,17 +10,19 @@ import { Alert } from '../../../shared/alert/alert';
 @Component({
   selector: 'app-establishment-setup',
   standalone: true,
-  imports: [FormsModule, Alert],
+  imports: [CommonModule, FormsModule, Alert],
   templateUrl: './establishment-setup.html',
   styleUrl: './establishment-setup.scss'
 })
-export class EstablishmentSetup {
+export class EstablishmentSetup implements OnInit {
   nombre = '';
   descripcion = '';
   direccion = '';
   telefono = '';
   errorMessage = '';
   isLoading = false;
+  isCheckingExisting = true;
+  showOptionalFields = false;
 
   constructor(
     private router: Router,
@@ -26,7 +30,35 @@ export class EstablishmentSetup {
     private establishmentsService: Establishments
   ) {}
 
+  ngOnInit(): void {
+    const user = this.authService.getUser();
+    if (!user) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    this.establishmentsService
+      .getMyEstablishments(user.usuario_id)
+      .pipe(finalize(() => {
+        this.isCheckingExisting = false;
+      }))
+      .subscribe({
+        next: (establishments) => {
+          if (Array.isArray(establishments) && establishments.length > 0) {
+            this.router.navigate(['/app/home']);
+          }
+        },
+        error: () => {
+          this.errorMessage = 'No pudimos verificar tus negocios. Puedes continuar con el registro.';
+        },
+      });
+  }
+
   onSubmit() {
+    if (this.isCheckingExisting) {
+      return;
+    }
+
     if (!this.nombre.trim()) {
       this.errorMessage = 'El nombre del negocio es obligatorio';
       return;
@@ -66,6 +98,17 @@ export class EstablishmentSetup {
         this.isLoading = false;
       }
     });
+  }
+
+  toggleOptionalFields() {
+    this.showOptionalFields = !this.showOptionalFields;
+  }
+
+  continueLater() {
+    if (this.isCheckingExisting || this.isLoading) {
+      return;
+    }
+    this.router.navigate(['/app/home']);
   }
 
   onLogout() {

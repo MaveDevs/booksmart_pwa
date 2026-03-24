@@ -1,7 +1,7 @@
 <div class="home-container">
   <header class="home-header">
     <h1>Bienvenido{{ userName ? ', ' + userName : '' }}</h1>
-    <p>Selecciona un negocio para gestionarlo o crea uno nuevo.</p>
+    <p>Gestiona la información de tu negocio desde aquí.</p>
   </header>
 
   <app-alert
@@ -17,9 +17,9 @@
   </section>
 
   <section *ngIf="!isLoading && !errorMessage && establishments.length === 0" class="empty-state">
-    <h2>Aún no tienes negocios</h2>
-    <p>Completa la configuración inicial para comenzar a recibir citas.</p>
-    <a routerLink="/setup/establishment" class="btn-primary">Crear mi primer negocio</a>
+    <h2>Aún no tienes un negocio configurado</h2>
+    <p>Cuando estés listo, completa la configuración para comenzar a recibir citas.</p>
+    <a routerLink="/setup/establishment" class="btn-primary">Configurar mi negocio</a>
   </section>
 
   <section *ngIf="establishments.length > 0" class="establishments-grid">
@@ -46,7 +46,4 @@
     </article>
   </section>
 
-  <section *ngIf="!isLoading" class="quick-actions">
-    <a routerLink="/setup/establishment" class="btn-primary">+ Crear nuevo negocio</a>
-  </section>
 </div>

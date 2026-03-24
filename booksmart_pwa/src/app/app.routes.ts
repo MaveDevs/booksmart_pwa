@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { MainLayout } from './components/layout/main-layout/main-layout';
 import { authGuard } from './guards/auth.guard';
-import { businessSetupGuard } from './guards/business-setup.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -31,11 +30,11 @@ export const routes: Routes = [
     ]
   },
 
-  // Main app: requires auth + at least one establishment
+  // Main app: requires auth
   {
     path: 'app',
     component: MainLayout,
-    canActivate: [authGuard, businessSetupGuard],
+    canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
       {

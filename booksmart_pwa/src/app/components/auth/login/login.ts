@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Auth, LoginRequest } from '../../../services/auth/auth';
-import { Establishments } from '../../../services/establishments/establishments';
 import { Alert } from '../../../shared/alert/alert';
 
 @Component({
@@ -20,8 +19,7 @@ export class Login {
 
   constructor(
     private router: Router,
-    private authService: Auth,
-    private establishmentsService: Establishments
+    private authService: Auth
   ) {}
 
   onLogin() {
@@ -50,13 +48,14 @@ export class Login {
           next: (user) => {
             console.log('[Login] 👤 Usuario obtenido:', user);
             this.authService.setUser(user);
-            this.checkEstablishmentsAndNavigate(user.usuario_id);
+            this.isLoading = false;
+            this.router.navigate(['/app/home']);
           },
           error: (err) => {
             console.error('[Login] ❌ Error al obtener usuario:', err);
             console.error('[Login] status:', err.status, '| body:', err.error);
             this.isLoading = false;
-            this.router.navigate(['/setup/establishment']);
+            this.router.navigate(['/app/home']);
           }
         });
       },
@@ -76,23 +75,6 @@ export class Login {
           this.errorMessage = 'Error al iniciar sesión. Intenta de nuevo';
         }
         this.isLoading = false;
-      }
-    });
-  }
-
-  private checkEstablishmentsAndNavigate(userId: number): void {
-    this.establishmentsService.getMyEstablishments(userId).subscribe({
-      next: (establishments) => {
-        this.isLoading = false;
-        if (establishments.length === 0) {
-          this.router.navigate(['/setup/establishment']);
-        } else {
-          this.router.navigate(['/app/home']);
-        }
-      },
-      error: () => {
-        this.isLoading = false;
-        this.router.navigate(['/setup/establishment']);
       }
     });
   }

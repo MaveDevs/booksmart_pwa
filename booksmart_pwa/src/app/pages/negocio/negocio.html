@@ -28,16 +28,29 @@
     <app-alert [message]="errorMessage" [type]="'error'" [show]="!!errorMessage"></app-alert>
     <app-alert [message]="successMessage" [type]="'success'" [show]="!!successMessage"></app-alert>
 
-    <!-- Tabs Navigation -->
-    <nav class="negocio-tabs">
-      <button class="tab-btn" [class.active]="activeTab === 'general'" type="button" (click)="setTab('general')">General</button>
-      <button class="tab-btn" [class.active]="activeTab === 'servicios'" type="button" (click)="setTab('servicios')">Servicios</button>
-      <button class="tab-btn" [class.active]="activeTab === 'horarios'" type="button" (click)="setTab('horarios')">Horarios</button>
-      <button class="tab-btn" [class.active]="activeTab === 'calendario'" type="button" (click)="setTab('calendario')">Calendario</button>
-      <button class="tab-btn" [class.active]="activeTab === 'mensajes'" type="button" (click)="setTab('mensajes')">Mensajes</button>
-      <button class="tab-btn" [class.active]="activeTab === 'resenas'" type="button" (click)="setTab('resenas')">Reseñas</button>
-      <button class="tab-btn" [class.active]="activeTab === 'suscripcion'" type="button" (click)="setTab('suscripcion')">Suscripción</button>
-    </nav>
+    <div class="negocio-workspace">
+
+      <aside class="negocio-sidebar">
+        <section class="sidebar-section">
+          <p class="sidebar-title">Operación</p>
+          <nav class="sidebar-nav">
+            <button class="sidebar-btn" [class.active]="activeTab === 'calendario'" type="button" (click)="setTab('calendario')">Calendario</button>
+            <button class="sidebar-btn" [class.active]="activeTab === 'horarios'" type="button" (click)="setTab('horarios')">Horarios</button>
+            <button class="sidebar-btn" [class.active]="activeTab === 'servicios'" type="button" (click)="setTab('servicios')">Servicios</button>
+            <button class="sidebar-btn" [class.active]="activeTab === 'resenas'" type="button" (click)="setTab('resenas')">Reseñas</button>
+          </nav>
+        </section>
+
+        <section class="sidebar-section">
+          <p class="sidebar-title">Configuración</p>
+          <nav class="sidebar-nav">
+            <button class="sidebar-btn" [class.active]="activeTab === 'general'" type="button" (click)="setTab('general')">Perfil del negocio</button>
+            <button class="sidebar-btn" [class.active]="activeTab === 'suscripcion'" type="button" (click)="setTab('suscripcion')">Suscripción</button>
+          </nav>
+        </section>
+      </aside>
+
+      <div class="negocio-main-content">
 
     <!-- ═══════════════════════ TAB: GENERAL ═══════════════════════ -->
     <div class="tab-content" *ngIf="activeTab === 'general'">
@@ -277,15 +290,6 @@
       </div>
     </div>
 
-    <!-- ═══════════════════════ TAB: MENSAJES ═══════════════════════ -->
-    <div class="tab-content" *ngIf="activeTab === 'mensajes'">
-      <section class="card">
-        <h2>Mensajes</h2>
-        <p class="hint">La mensajería en tiempo real estará disponible próximamente (WebSocket).</p>
-        <p class="hint">Mientras tanto, comunícate con tus clientes desde la sección Calendario → detalle de cita.</p>
-      </section>
-    </div>
-
     <!-- ═══════════════════════ TAB: RESEÑAS ═══════════════════════ -->
     <div class="tab-content" *ngIf="activeTab === 'resenas'">
       <section class="card">
@@ -325,6 +329,9 @@
           <p *ngIf="!subscription">No tienes una suscripción activa. Contacta al administrador para activar tu plan.</p>
         </ng-container>
       </section>
+    </div>
+
+      </div>
     </div>
 
   </ng-container>
@@ -382,6 +389,7 @@
         <strong>Estado:</strong>
         <span class="badge status-{{ selectedAppointment.estado | lowercase }}">{{ getStatusLabel(selectedAppointment.estado) }}</span>
       </p>
+      <p class="hint">Los mensajes con el cliente se gestionan desde esta cita.</p>
     </div>
     <div class="modal-footer actions">
       <button

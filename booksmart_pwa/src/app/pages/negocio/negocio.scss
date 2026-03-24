@@ -50,37 +50,68 @@
   }
 }
 
-// ── TABS ───────────────────────────────────────────────────────────────────
+// ── WORKSPACE / SIDEBAR ───────────────────────────────────────────────────
 
-.negocio-tabs {
-  display: flex;
-  gap: 0.25rem;
-  border-bottom: 2px solid var(--color-border);
-  overflow-x: auto;
-  padding-bottom: 0;
+.negocio-workspace {
+  display: grid;
+  gap: 1rem;
+
+  @media (min-width: 980px) {
+    grid-template-columns: 240px minmax(0, 1fr);
+    align-items: start;
+  }
 }
 
-.tab-btn {
-  background: none;
+.negocio-sidebar {
+  display: grid;
+  gap: 0.75rem;
+
+  @media (min-width: 980px) {
+    position: sticky;
+    top: 0.75rem;
+  }
+}
+
+.sidebar-section {
+  padding: 0.2rem 0;
+}
+
+.sidebar-title {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-weight: 700;
+}
+
+.sidebar-nav {
+  display: grid;
+  gap: 0.35rem;
+
+  @media (max-width: 979px) {
+    display: flex;
+    overflow-x: auto;
+  }
+}
+
+.sidebar-btn {
+  width: 100%;
+  text-align: left;
   border: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
-  padding: 0.6rem 1rem;
+  border-radius: 0.6rem;
+  background: none;
+  color: var(--color-text-muted);
+  padding: 0.5rem 0.65rem;
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: color 0.2s, border-color 0.2s;
-
-  &:hover {
-    color: var(--color-text);
-  }
 
   &.active {
-    color: var(--color-primary);
-    border-bottom-color: var(--color-primary);
+    color: var(--color-primary-strong);
+    background: var(--color-primary-soft);
     font-weight: 600;
+  }
+
+  @media (max-width: 979px) {
+    width: auto;
+    white-space: nowrap;
   }
 }
 
@@ -169,8 +200,6 @@ label {
   font-size: 0.88rem;
   margin-bottom: 0.5rem;
 }
-
-.mt-1 { margin-top: 1rem; }
 
 // ── SERVICES LIST ──────────────────────────────────────────────────────────
 

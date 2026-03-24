@@ -2,9 +2,9 @@
   <div class="setup-card">
     <div class="setup-header">
       <h1>Booksmart</h1>
-      <h2>Registra tu Negocio</h2>
+      <h2>Configura tu Negocio</h2>
       <p class="setup-subtitle">
-        Para continuar, da de alta tu establecimiento. Solo necesitas el nombre para empezar.
+        Completa lo básico para iniciar y deja los detalles para más tarde si lo necesitas.
       </p>
     </div>
 
@@ -14,63 +14,94 @@
       [show]="!!errorMessage">
     </app-alert>
 
-    <form (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label for="nombre">Nombre del negocio <span class="required">*</span></label>
-        <input
-          type="text"
-          id="nombre"
-          [(ngModel)]="nombre"
-          name="nombre"
-          placeholder="Ej. Barbería El Estilo"
-          [disabled]="isLoading"
-          required
-        >
-      </div>
+    <section class="setup-step setup-step-main">
+      <h3>Paso 1 · Lo esencial</h3>
+      <p>Solo el nombre es obligatorio para crear tu negocio.</p>
 
-      <div class="form-group">
-        <label for="descripcion">Descripción</label>
-        <input
-          type="text"
-          id="descripcion"
-          [(ngModel)]="descripcion"
-          name="descripcion"
-          placeholder="Breve descripción de tu negocio"
-          [disabled]="isLoading"
-        >
-      </div>
+      <form (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="nombre">Nombre del negocio <span class="required">*</span></label>
+          <input
+            type="text"
+            id="nombre"
+            [(ngModel)]="nombre"
+            name="nombre"
+            placeholder="Ej. Barbería El Estilo"
+            [disabled]="isLoading || isCheckingExisting"
+            required
+          >
+        </div>
 
-      <div class="form-group">
-        <label for="direccion">Dirección</label>
-        <input
-          type="text"
-          id="direccion"
-          [(ngModel)]="direccion"
-          name="direccion"
-          placeholder="Calle, número, colonia..."
-          [disabled]="isLoading"
-        >
-      </div>
+        <div class="setup-actions">
+          <button type="submit" class="btn-primary" [disabled]="isLoading || isCheckingExisting">
+            {{ isLoading ? 'Guardando...' : 'Crear mi negocio' }}
+          </button>
+          <button
+            type="button"
+            class="btn-secondary"
+            [disabled]="isLoading || isCheckingExisting"
+            (click)="toggleOptionalFields()">
+            {{ showOptionalFields ? 'Ocultar detalles opcionales' : 'Agregar detalles opcionales' }}
+          </button>
+        </div>
+      </form>
+    </section>
 
-      <div class="form-group">
-        <label for="telefono">Teléfono de contacto</label>
-        <input
-          type="tel"
-          id="telefono"
-          [(ngModel)]="telefono"
-          name="telefono"
-          placeholder="10 dígitos"
-          [disabled]="isLoading"
-        >
-      </div>
+    <section class="setup-step" *ngIf="showOptionalFields">
+      <h3>Paso 2 · Detalles opcionales</h3>
+      <p>Puedes completarlos ahora o editarlos más adelante desde tu perfil.</p>
 
-      <button type="submit" class="btn-primary" [disabled]="isLoading">
-        {{ isLoading ? 'Guardando...' : 'Crear mi negocio' }}
+      <form (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="descripcion">Descripción</label>
+          <input
+            type="text"
+            id="descripcion"
+            [(ngModel)]="descripcion"
+            name="descripcion"
+            placeholder="Breve descripción de tu negocio"
+            [disabled]="isLoading || isCheckingExisting"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="direccion">Dirección</label>
+          <input
+            type="text"
+            id="direccion"
+            [(ngModel)]="direccion"
+            name="direccion"
+            placeholder="Calle, número, colonia..."
+            [disabled]="isLoading || isCheckingExisting"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="telefono">Teléfono de contacto</label>
+          <input
+            type="tel"
+            id="telefono"
+            [(ngModel)]="telefono"
+            name="telefono"
+            placeholder="10 dígitos"
+            [disabled]="isLoading || isCheckingExisting"
+          >
+        </div>
+
+        <button type="submit" class="btn-primary" [disabled]="isLoading || isCheckingExisting">
+          {{ isLoading ? 'Guardando...' : 'Guardar y crear negocio' }}
+        </button>
+      </form>
+    </section>
+
+    <div class="setup-footer">
+      <button type="button" class="btn-link" [disabled]="isLoading || isCheckingExisting" (click)="continueLater()">
+        Continuar luego
       </button>
-    </form>
-
-    <p class="setup-footer">
-      <button type="button" class="btn-link" (click)="onLogout()">Cerrar sesión</button>
-    </p>
+      <span>·</span>
+      <button type="button" class="btn-link" [disabled]="isLoading || isCheckingExisting" (click)="onLogout()">
+        Cerrar sesión
+      </button>
+    </div>
   </div>
 </div>

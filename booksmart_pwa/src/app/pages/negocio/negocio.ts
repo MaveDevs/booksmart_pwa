@@ -37,7 +37,7 @@ import { BusinessSubscription, Subscriptions } from '../../services/subscription
 import { Alert } from '../../shared/alert/alert';
 import { ConfirmModal } from '../../shared/confirm-modal/confirm-modal';
 
-type TabId = 'general' | 'servicios' | 'horarios' | 'calendario' | 'mensajes' | 'resenas' | 'suscripcion';
+type TabId = 'general' | 'servicios' | 'horarios' | 'calendario' | 'resenas' | 'suscripcion';
 
 @Component({
   selector: 'app-negocio',
@@ -51,7 +51,7 @@ export class Negocio implements OnInit {
   establishment: Establishment | null = null;
   isLoadingEstablishment = true;
 
-  activeTab: TabId = 'general';
+  activeTab: TabId = 'calendario';
   private tabsLoaded = new Set<TabId>();
 
   // --- General tab ---
@@ -170,7 +170,8 @@ export class Negocio implements OnInit {
           telefono: e.telefono || '',
           activo: e.activo,
         };
-        this.tabsLoaded.add('general');
+        this.tabsLoaded.add(this.activeTab);
+        this.loadTabData(this.activeTab);
         this.loadPublicProfile();
       },
       error: () => { this.errorMessage = 'No se pudo cargar el negocio.'; },
