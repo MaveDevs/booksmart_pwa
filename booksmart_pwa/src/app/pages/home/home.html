@@ -1,50 +1,73 @@
 <div class="home-container">
-  <header class="home-header">
-    <h1>Mis Negocios</h1>
-    <p>Administra tus establecimientos, servicios y perfil público.</p>
-  </header>
 
-  <app-alert
-    [message]="errorMessage"
-    [type]="'error'"
-    [show]="!!errorMessage">
-  </app-alert>
+  <app-alert [message]="errorMessage" [type]="'error'" [show]="!!errorMessage"></app-alert>
 
+  <!-- Loading -->
+  <section *ngIf="isLoading" class="loading-state">
+    <p>Cargando tus negocios...</p>
+  </section>
+
+  <!-- Empty: no establishments -->
+  <section *ngIf="!isLoading && !errorMessage && establishments.length === 0" class="empty-state">
+    <div class="empty-icon">🏪</div>
+    <h2>Aún no tienes establecimientos</h2>
+    <p>Completa la configuración inicial para empezar a recibir citas.</p>
+    <a routerLink="/setup/establishment" class="btn-primary">Configurar mi negocio</a>
+  </section>
+
+  <!-- Error: retry -->
   <section *ngIf="!isLoading && !!errorMessage && establishments.length === 0" class="empty-state">
     <h2>No pudimos cargar tus establecimientos</h2>
     <p>Intenta nuevamente en unos segundos.</p>
     <button type="button" class="btn-secondary" (click)="retryLoad()">Reintentar</button>
   </section>
 
-  <section *ngIf="!isLoading && !errorMessage && establishments.length === 0" class="empty-state">
-    <h2>Aún no tienes establecimientos</h2>
-    <p>Completa la configuración inicial para poder gestionar tus servicios.</p>
-    <a routerLink="/setup/establishment" class="btn-primary">Ir a configuración</a>
-  </section>
+  <!-- Dashboard view when establishments exist -->
+  <ng-container *ngIf="establishments.length > 0">
 
-  <section *ngIf="establishments.length > 0" class="establishments-grid">
-    <article
-      class="establishment-card"
-      *ngFor="let establishment of establishments; trackBy: trackByEstablishmentId">
-      <div class="card-header">
-        <h2>{{ establishment.nombre }}</h2>
-        <span class="badge" [class.inactive]="!establishment.activo">
-          {{ establishment.activo ? 'Activo' : 'Inactivo' }}
+    <!-- Business selector (if multiple) -->
+    <header class="dashboard-header">
+      <div>
+        <h1>{{ establishments[0].nombre }}</h1>
+        <span class="badge" [class.inactive]="!establishments[0].activo">
+          {{ establishments[0].activo ? '● Activo' : '● Inactivo' }}
         </span>
       </div>
+      <p *ngIf="establishments[0].descripcion" class="biz-description">{{ establishments[0].descripcion }}</p>
+      <div class="biz-meta" *ngIf="establishments[0].direccion || establishments[0].telefono">
+        <span *ngIf="establishments[0].direccion">📍 {{ establishments[0].direccion }}</span>
+        <span *ngIf="establishments[0].telefono">📞 {{ establishments[0].telefono }}</span>
+      </div>
+    </header>
 
-      <p class="description" *ngIf="establishment.descripcion">{{ establishment.descripcion }}</p>
-      <p class="description muted" *ngIf="!establishment.descripcion">Sin descripción</p>
+    <!-- Quick Actions Grid -->
+    <section class="actions-grid">
+      <a routerLink="/app/appointments" class="action-card primary">
+        <span class="action-icon">📅</span>
+        <span class="action-label">Citas</span>
+        <span class="action-desc">Acepta y gestiona reservaciones</span>
+      </a>
+      <a routerLink="/app/services" class="action-card">
+        <span class="action-icon">💈</span>
+        <span class="action-label">Servicios</span>
+        <span class="action-desc">Administra tu catálogo</span>
+      </a>
+      <a routerLink="/app/workers" class="action-card">
+        <span class="action-icon">👥</span>
+        <span class="action-label">Equipo</span>
+        <span class="action-desc">Empleados y accesos</span>
+      </a>
+      <a routerLink="/app/agendas" class="action-card">
+        <span class="action-icon">🕒</span>
+        <span class="action-label">Horarios</span>
+        <span class="action-desc">Apertura y cierre</span>
+      </a>
+      <a routerLink="/app/profile" class="action-card">
+        <span class="action-icon">⚙️</span>
+        <span class="action-label">Perfil</span>
+        <span class="action-desc">Datos del negocio</span>
+      </a>
+    </section>
 
-      <ul class="meta-list">
-        <li><strong>Dirección:</strong> {{ establishment.direccion || 'Sin dirección' }}</li>
-        <li><strong>Teléfono:</strong> {{ establishment.telefono || 'Sin teléfono' }}</li>
-      </ul>
-    </article>
-  </section>
-
-  <section *ngIf="establishments.length > 0" class="quick-actions">
-    <a routerLink="/app/services" class="btn-primary">Gestionar servicios</a>
-    <a routerLink="/app/profile" class="btn-secondary">Editar perfil del negocio</a>
-  </section>
+  </ng-container>
 </div>

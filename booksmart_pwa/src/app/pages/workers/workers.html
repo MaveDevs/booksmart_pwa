@@ -1,0 +1,97 @@
+<div class="workers-container">
+  <header class="workers-header" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+    <div>
+      <h1>Equipo de Trabajo</h1>
+      <p style="margin-top: 0.35rem">Gestiona los empleados de tu establecimiento.</p>
+    </div>
+    <button type="button" class="btn-primary" *ngIf="selectedEstablishmentId" (click)="openCreateModal()">
+      ➕ Nuevo Trabajador
+    </button>
+  </header>
+
+  <app-alert [message]="errorMessage" [type]="'error'" [show]="!!errorMessage"></app-alert>
+  <app-alert [message]="successMessage" [type]="'success'" [show]="!!successMessage"></app-alert>
+
+  <!-- Lista de trabajadores -->
+  <section class="card list-card" *ngIf="selectedEstablishmentId">
+    <h2>Plantilla actual</h2>
+
+    <p *ngIf="isLoadingWorkers" class="meta">Cargando trabajadores...</p>
+    <p *ngIf="!isLoadingWorkers && workers.length === 0" class="meta">No hay trabajadores registrados aún.</p>
+
+    <div class="worker-list">
+      <article class="worker-item" *ngFor="let worker of workers; trackBy: trackById">
+        <div class="worker-head">
+          <h3>{{ worker.nombre }} {{ worker.apellido }}</h3>
+          <span class="status" [class.inactive]="!worker.activo">
+            {{ worker.activo ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+        <p class="meta" *ngIf="worker.especialidad">{{ worker.especialidad }}</p>
+        <p class="meta" *ngIf="worker.email">📧 {{ worker.email }}</p>
+        <p class="meta" *ngIf="worker.telefono">📞 {{ worker.telefono }}</p>
+        <div class="actions" style="margin-top: 0.8rem;">
+          <button type="button" class="btn-secondary" (click)="openEditModal(worker)">Editar</button>
+          <button type="button" class="btn-danger" (click)="requestDelete(worker.trabajador_id)">Eliminar</button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Formulario Modal: Registrar/Editar trabajador -->
+  <app-modal
+    [show]="showWorkerModal"
+    [title]="isEditingWorker ? 'Editar trabajador' : 'Registrar trabajador'"
+    (close)="closeWorkerModal()">
+    <div class="form-grid compact">
+      <label>
+        Nombre *
+        <input class="form-input" type="text" [(ngModel)]="workerForm.nombre" placeholder="Juan" [disabled]="isSubmitting">
+      </label>
+      <label>
+        Apellido *
+        <input class="form-input" type="text" [(ngModel)]="workerForm.apellido" placeholder="Pérez" [disabled]="isSubmitting">
+      </label>
+      <label>
+        Email <small *ngIf="!isEditingWorker">(Se creará cuenta de acceso pwa)</small>
+        <input class="form-input" type="email" [(ngModel)]="workerForm.email" placeholder="juan@correo.com" [disabled]="isSubmitting">
+      </label>
+      <label>
+        Teléfono
+        <input class="form-input" type="tel" [(ngModel)]="workerForm.telefono" placeholder="(614) 123-4567" [disabled]="isSubmitting">
+      </label>
+      <label *ngIf="isEditingWorker">
+        Estado
+        <select class="form-input" [(ngModel)]="workerForm.activo" [disabled]="isSubmitting">
+          <option [ngValue]="true">Activo</option>
+          <option [ngValue]="false">Inactivo</option>
+        </select>
+      </label>
+      <label class="full-width">
+        Especialidad
+        <input class="form-input" type="text" [(ngModel)]="workerForm.especialidad" placeholder="Corte y barba" [disabled]="isSubmitting">
+      </label>
+      <label class="full-width">
+        Descripción
+        <textarea class="form-input" rows="2" [(ngModel)]="workerForm.descripcion" placeholder="Breve descripción" [disabled]="isSubmitting"></textarea>
+      </label>
+    </div>
+    
+    <div class="actions" style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+      <button type="button" class="btn-secondary" [disabled]="isSubmitting" (click)="closeWorkerModal()">Cancelar</button>
+      <button type="button" class="btn-primary" [disabled]="isSubmitting" (click)="saveWorker()">
+        {{ isSubmitting ? 'Guardando...' : (isEditingWorker ? 'Guardar Cambios' : 'Registrar Trabajador') }}
+      </button>
+    </div>
+  </app-modal>
+
+  <app-confirm-modal
+    [show]="showDeleteConfirmModal"
+    [title]="'Eliminar trabajador'"
+    [message]="'¿Estás seguro de eliminar a este trabajador? Se eliminará también su cuenta de acceso.'"
+    [confirmText]="'Sí, eliminar'"
+    [cancelText]="'Cancelar'"
+    (confirm)="confirmDelete()"
+    (cancel)="cancelDelete()">
+  </app-confirm-modal>
+</div>

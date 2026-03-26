@@ -1,0 +1,178 @@
+.appointments-container {
+	display: grid;
+	gap: 1rem;
+}
+
+.appointments-header {
+	h1 {
+		color: var(--color-text-strong);
+		font-size: 1.8rem;
+		margin-bottom: 0.35rem;
+	}
+	p {
+		color: var(--color-text-muted);
+	}
+}
+
+.card {
+	background: var(--color-surface);
+	border: 1px solid var(--color-border);
+	border-radius: 0.9rem;
+	padding: 1rem;
+}
+
+.selector-card {
+	display: grid;
+	gap: 0.4rem;
+	label {
+		color: var(--color-text-strong);
+		font-weight: 600;
+	}
+}
+
+.form-input {
+	width: 100%;
+	border: 2px solid var(--color-border);
+	border-radius: 0.6rem;
+	padding: 0.75rem;
+	font-size: 0.95rem;
+	background: var(--color-surface-muted);
+	color: var(--color-text);
+	transition: all 0.2s ease;
+	box-sizing: border-box;
+	&:focus {
+		outline: none;
+		border-color: var(--color-primary);
+		background: var(--color-surface);
+		box-shadow: 0 0 0 3px rgba(31, 191, 159, 0.15);
+	}
+}
+
+label {
+	display: grid;
+	gap: 0.3rem;
+	color: var(--color-text-strong);
+	font-weight: 600;
+	font-size: 0.9rem;
+}
+
+.meta {
+	color: var(--color-text-muted);
+	font-size: 0.85rem;
+}
+
+.empty-msg {
+	text-align: center;
+	padding: 2rem 0;
+}
+
+.appointments-list {
+	display: grid;
+	gap: 0.9rem;
+}
+
+.appointment-card {
+	background: var(--color-surface);
+	border: 1px solid var(--color-border);
+	border-radius: 0.9rem;
+	padding: 1rem;
+	display: grid;
+	gap: 0.6rem;
+	border-left: 4px solid transparent;
+
+	&.pending {
+		border-left-color: #f0ad4e;
+	}
+	&.confirmed {
+		border-left-color: #5cb85c;
+	}
+	&.cancelled {
+		border-left-color: #d9534f;
+		opacity: 0.65;
+	}
+	&.completed {
+		border-left-color: #0275d8;
+		opacity: 0.75;
+	}
+}
+
+.appt-head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 0.5rem;
+
+	h3 {
+		color: var(--color-text-strong);
+		font-size: 1rem;
+		margin-bottom: 0.2rem;
+	}
+}
+
+.date-info {
+	color: var(--color-text);
+	font-size: 0.9rem;
+}
+
+.status-badge {
+	font-size: 0.8rem;
+	font-weight: 600;
+	border-radius: 999px;
+	padding: 0.25rem 0.7rem;
+	background: var(--color-surface-muted);
+	color: var(--color-text-strong);
+	white-space: nowrap;
+}
+
+.reschedule-form {
+	display: grid;
+	gap: 0.6rem;
+	@media (min-width: 760px) {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.btn-accept,
+.btn-complete {
+	border-radius: 0.6rem;
+	padding: 0.6rem 0.9rem;
+	font-weight: 600;
+	border: none;
+	cursor: pointer;
+	font-size: 0.85rem;
+}
+
+.btn-primary {
+	background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-strong) 100%);
+	color: var(--color-surface);
+}
+
+.btn-secondary {
+	background: var(--color-surface);
+	color: var(--color-secondary);
+	border: 1px solid var(--color-border);
+}
+
+.btn-danger {
+	background: var(--color-danger-soft);
+	color: var(--color-danger);
+}
+
+.btn-accept {
+	background: #5cb85c;
+	color: #fff;
+}
+
+.btn-complete {
+	background: #0275d8;
+	color: #fff;
+}

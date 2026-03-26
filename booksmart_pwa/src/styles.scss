@@ -1,3 +1,5 @@
+@import 'leaflet/dist/leaflet.css';
+
 // Reset básico y tipografía
 * {
   margin: 0;
@@ -65,4 +67,18 @@ body {
   color: var(--color-text);
   overflow: hidden;
   transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Global Map tile styling (bypasses Angular View Encapsulation for dynamic Leaflet DOM) */
+.location-map .leaflet-layer {
+  /* Tinte sutil hacia el teal de la marca (Booksmart) */
+  filter: sepia(0.2) hue-rotate(120deg) saturate(1.2) contrast(0.95);
+  transition: filter 0.4s ease;
+}
+
+/* Auto Dark-Mode de los tiles usando filtros de inversión de color */
+:root[data-theme='dark'] .location-map .leaflet-layer {
+  /* Invierte los colores (hace negros los blancos), vuelve el agua de naranja a azul de nuevo (hue-rotate), 
+     y lo tinta hacia los colores teal oscuros de Booksmart */
+  filter: invert(100%) hue-rotate(180deg) brightness(0.85) contrast(1.1) sepia(0.3) hue-rotate(130deg);
 }

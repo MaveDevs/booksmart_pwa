@@ -12,10 +12,11 @@ import {
 } from '../../services/business-services/business-services';
 import { Alert } from '../../shared/alert/alert';
 import { ConfirmModal } from '../../shared/confirm-modal/confirm-modal';
+import { Modal } from '../../shared/modal/modal';
 
 @Component({
   selector: 'app-services',
-  imports: [CommonModule, FormsModule, Alert, ConfirmModal],
+  imports: [CommonModule, FormsModule, Alert, ConfirmModal, Modal],
   templateUrl: './services.html',
   styleUrl: './services.scss',
 })
@@ -24,16 +25,11 @@ export class Services implements OnInit {
   selectedEstablishmentId: number | null = null;
   services: BusinessService[] = [];
 
-  newService = {
-    nombre: '',
-    descripcion: '',
-    duracion: 30,
-    precio: 0,
-    activo: true,
-  };
+  showServiceModal = false;
+  isEditingService = false;
+  currentServiceId: number | null = null;
 
-  editingServiceId: number | null = null;
-  editService = {
+  serviceForm = {
     nombre: '',
     descripcion: '',
     duracion: 30,
@@ -44,8 +40,10 @@ export class Services implements OnInit {
   isLoadingEstablishments = true;
   isLoadingServices = false;
   isSubmitting = false;
+  
   showDeleteConfirmModal = false;
   pendingDeleteServiceId: number | null = null;
+  
   errorMessage = '';
   successMessage = '';
 
@@ -61,69 +59,19 @@ export class Services implements OnInit {
     this.loadEstablishments();
   }
 
-  onEstablishmentChange(value: string): void {
-    this.selectedEstablishmentId = Number(value);
-    this.cancelEdit();
-    this.loadServices();
-  }
-
-  createService(): void {
-    if (!this.selectedEstablishmentId) {
-      this.errorMessage = 'Selecciona un establecimiento.';
-      return;
-    }
-    if (!this.newService.nombre.trim()) {
-      this.errorMessage = 'El nombre del servicio es obligatorio.';
-      return;
-    }
-    if (this.newService.duracion <= 0) {
-      this.errorMessage = 'La duración debe ser mayor a 0 minutos.';
-      return;
-    }
-    if (this.newService.precio < 0) {
-      this.errorMessage = 'El precio no puede ser negativo.';
-      return;
-    }
-
-    const payload: BusinessServiceCreate = {
-      establecimiento_id: this.selectedEstablishmentId,
-      nombre: this.newService.nombre.trim(),
-      descripcion: this.newService.descripcion.trim() || undefined,
-      duracion: Number(this.newService.duracion),
-      precio: Number(this.newService.precio),
-      activo: this.newService.activo,
-    };
-
+  openCreateModal(): void {
+    this.isEditingService = false;
+    this.currentServiceId = null;
+    this.resetForm();
     this.errorMessage = '';
     this.successMessage = '';
-    this.isSubmitting = true;
-
-    this.businessServicesApi.create(payload).subscribe({
-      next: () => {
-        this.successMessage = 'Servicio creado correctamente.';
-        this.newService = {
-          nombre: '',
-          descripcion: '',
-          duracion: 30,
-          precio: 0,
-          activo: true,
-        };
-        this.isSubmitting = false;
-        this.cdr.markForCheck();
-        this.loadServices();
-      },
-      error: (error) => {
-        this.errorMessage =
-          error?.error?.detail || 'No se pudo crear el servicio.';
-        this.isSubmitting = false;
-        this.cdr.markForCheck();
-      },
-    });
+    this.showServiceModal = true;
   }
 
-  startEdit(service: BusinessService): void {
-    this.editingServiceId = service.servicio_id;
-    this.editService = {
+  openEditModal(service: BusinessService): void {
+    this.isEditingService = true;
+    this.currentServiceId = service.servicio_id;
+    this.serviceForm = {
       nombre: service.nombre,
       descripcion: service.descripcion || '',
       duracion: service.duracion,
@@ -132,60 +80,98 @@ export class Services implements OnInit {
     };
     this.errorMessage = '';
     this.successMessage = '';
+    this.showServiceModal = true;
   }
 
-  cancelEdit(): void {
-    this.editingServiceId = null;
+  closeServiceModal(): void {
+    if (this.isSubmitting) return;
+    this.showServiceModal = false;
   }
 
-  saveEdit(serviceId: number): void {
-    if (!this.editService.nombre.trim()) {
+  resetForm(): void {
+    this.serviceForm = {
+      nombre: '',
+      descripcion: '',
+      duracion: 30,
+      precio: 0,
+      activo: true,
+    };
+  }
+
+  saveService(): void {
+    if (!this.selectedEstablishmentId) {
+      this.errorMessage = 'Selecciona un establecimiento.';
+      return;
+    }
+    if (!this.serviceForm.nombre.trim()) {
       this.errorMessage = 'El nombre del servicio es obligatorio.';
       return;
     }
-    if (this.editService.duracion <= 0) {
+    if (this.serviceForm.duracion <= 0) {
       this.errorMessage = 'La duración debe ser mayor a 0 minutos.';
       return;
     }
-    if (this.editService.precio < 0) {
+    if (this.serviceForm.precio < 0) {
       this.errorMessage = 'El precio no puede ser negativo.';
       return;
     }
-
-    const payload: BusinessServiceUpdate = {
-      nombre: this.editService.nombre.trim(),
-      descripcion: this.editService.descripcion.trim() || undefined,
-      duracion: Number(this.editService.duracion),
-      precio: Number(this.editService.precio),
-      activo: this.editService.activo,
-    };
 
     this.errorMessage = '';
     this.successMessage = '';
     this.isSubmitting = true;
 
-    this.businessServicesApi.update(serviceId, payload).subscribe({
-      next: () => {
-        this.successMessage = 'Servicio actualizado correctamente.';
-        this.isSubmitting = false;
-        this.editingServiceId = null;
-        this.cdr.markForCheck();
-        this.loadServices();
-      },
-      error: (error) => {
-        this.errorMessage =
-          error?.error?.detail || 'No se pudo actualizar el servicio.';
-        this.isSubmitting = false;
-        this.cdr.markForCheck();
-      },
-    });
+    if (this.isEditingService && this.currentServiceId) {
+      const payload: BusinessServiceUpdate = {
+        nombre: this.serviceForm.nombre.trim(),
+        descripcion: this.serviceForm.descripcion.trim() || undefined,
+        duracion: Number(this.serviceForm.duracion),
+        precio: Number(this.serviceForm.precio),
+        activo: this.serviceForm.activo,
+      };
+
+      this.businessServicesApi.update(this.currentServiceId, payload).subscribe({
+        next: () => {
+          this.successMessage = 'Servicio actualizado correctamente.';
+          this.isSubmitting = false;
+          this.showServiceModal = false;
+          this.cdr.markForCheck();
+          this.loadServices();
+        },
+        error: (error) => {
+          this.errorMessage = error?.error?.detail || 'No se pudo actualizar el servicio.';
+          this.isSubmitting = false;
+          this.cdr.markForCheck();
+        },
+      });
+    } else {
+      const payload: BusinessServiceCreate = {
+        establecimiento_id: this.selectedEstablishmentId,
+        nombre: this.serviceForm.nombre.trim(),
+        descripcion: this.serviceForm.descripcion.trim() || undefined,
+        duracion: Number(this.serviceForm.duracion),
+        precio: Number(this.serviceForm.precio),
+        activo: this.serviceForm.activo,
+      };
+
+      this.businessServicesApi.create(payload).subscribe({
+        next: () => {
+          this.successMessage = 'Servicio creado correctamente.';
+          this.isSubmitting = false;
+          this.showServiceModal = false;
+          this.cdr.markForCheck();
+          this.loadServices();
+        },
+        error: (error) => {
+          this.errorMessage = error?.error?.detail || 'No se pudo crear el servicio.';
+          this.isSubmitting = false;
+          this.cdr.markForCheck();
+        },
+      });
+    }
   }
 
   requestDeleteService(serviceId: number): void {
-    if (this.isSubmitting) {
-      return;
-    }
-
+    if (this.isSubmitting) return;
     this.pendingDeleteServiceId = serviceId;
     this.showDeleteConfirmModal = true;
   }
@@ -216,8 +202,7 @@ export class Services implements OnInit {
         this.loadServices();
       },
       error: (error) => {
-        this.errorMessage =
-          error?.error?.detail || 'No se pudo eliminar el servicio.';
+        this.errorMessage = error?.error?.detail || 'No se pudo eliminar el servicio.';
         this.isSubmitting = false;
         this.cdr.markForCheck();
       },
@@ -256,8 +241,7 @@ export class Services implements OnInit {
           }
         },
         error: (error) => {
-          this.errorMessage =
-            error?.error?.detail || 'No se pudieron cargar los establecimientos.';
+          this.errorMessage = error?.error?.detail || 'No se pudieron cargar los establecimientos.';
         },
       });
   }
@@ -281,10 +265,8 @@ export class Services implements OnInit {
           this.services = Array.isArray(services) ? services : [];
         },
         error: (error) => {
-          this.errorMessage =
-            error?.error?.detail || 'No se pudieron cargar los servicios.';
+          this.errorMessage = error?.error?.detail || 'No se pudieron cargar los servicios.';
         },
       });
   }
-
 }

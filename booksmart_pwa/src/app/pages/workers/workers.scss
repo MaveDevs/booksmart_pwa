@@ -1,9 +1,9 @@
-.profile-container {
+.workers-container {
 	display: grid;
 	gap: 1rem;
 }
 
-.profile-header {
+.workers-header {
 	h1 {
 		color: var(--color-text-strong);
 		font-size: 1.8rem;
@@ -32,25 +32,17 @@
 	}
 }
 
-.form-card {
-	h2 {
-		color: var(--color-text-strong);
-		margin-bottom: 0.5rem;
-	}
-}
-
-.hint {
-	color: var(--color-text-muted);
-	margin-bottom: 0.8rem;
-}
-
 .form-grid {
+	margin-top: 0.8rem;
 	display: grid;
 	gap: 0.8rem;
-	margin-bottom: 0.9rem;
 
 	@media (min-width: 760px) {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	&.compact {
+		margin-top: 0;
 	}
 }
 
@@ -87,41 +79,85 @@ label {
 	}
 }
 
-.btn-primary {
+.btn-primary,
+.btn-secondary,
+.btn-danger {
 	border-radius: 0.6rem;
 	padding: 0.65rem 0.95rem;
 	font-weight: 600;
 	border: none;
 	cursor: pointer;
+}
+
+.btn-primary {
 	background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-strong) 100%);
 	color: var(--color-surface);
 }
 
-.map-section {
-	display: grid;
-	gap: 0.5rem;
-	margin-top: 0.5rem;
+.btn-secondary {
+	background: var(--color-surface);
+	color: var(--color-secondary);
+	border: 1px solid var(--color-border);
+}
 
-	.meta {
-		font-size: 0.85rem;
-		color: var(--color-text-muted);
-		margin-top: 0.2rem;
-		
-		&.warning {
-			color: #e67e22;
-			font-weight: 600;
-		}
+.btn-danger {
+	background: var(--color-danger-soft);
+	color: var(--color-danger);
+}
+
+.list-card {
+	h2 {
+		color: var(--color-text-strong);
+		margin-bottom: 0.8rem;
 	}
 }
 
-.location-map {
-	height: 300px;
-	width: 100%;
-	border: 2px solid var(--color-border);
-	border-radius: 0.6rem;
-	z-index: 1; /* Keep map below modals/navbar */
-	
-	&:hover {
-		border-color: var(--color-primary-soft);
+.worker-list {
+	display: grid;
+	gap: 0.9rem;
+}
+
+.worker-item {
+	border: 1px solid var(--color-border);
+	border-radius: 0.8rem;
+	padding: 0.9rem;
+	display: grid;
+	gap: 0.5rem;
+}
+
+.worker-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+
+	h3 {
+		color: var(--color-text-strong);
+		font-size: 1rem;
 	}
+}
+
+.status {
+	font-size: 0.75rem;
+	font-weight: 600;
+	border-radius: 999px;
+	padding: 0.2rem 0.55rem;
+	background: var(--color-primary-soft);
+	color: var(--color-text-strong);
+
+	&.inactive {
+		background: rgba(107, 107, 107, 0.18);
+		color: var(--color-text-muted);
+	}
+}
+
+.meta {
+	color: var(--color-text-muted);
+	font-size: 0.9rem;
+}
+
+.actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
 }

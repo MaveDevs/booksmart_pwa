@@ -12,18 +12,7 @@
   </section>
 
   <ng-container *ngIf="establishments.length > 0">
-    <section class="card selector-card">
-      <label for="establishment">Establecimiento</label>
-      <select
-        id="establishment"
-        class="form-input"
-        [ngModel]="selectedEstablishmentId"
-        (ngModelChange)="onEstablishmentChange($event)">
-        <option *ngFor="let establishment of establishments" [value]="establishment.establecimiento_id">
-          {{ establishment.nombre }}
-        </option>
-      </select>
-    </section>
+
 
     <section class="card">
       <h2>Horarios de agenda</h2>
