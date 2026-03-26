@@ -27,6 +27,13 @@ export interface AgendaCreate {
   hora_fin: string;
 }
 
+export interface AgendaBulkCreate {
+  establecimiento_id: number;
+  dias_semana: DayOfWeek[];
+  hora_inicio: string;
+  hora_fin: string;
+}
+
 export interface AgendaUpdate {
   dia_semana?: DayOfWeek;
   hora_inicio?: string;
@@ -52,6 +59,10 @@ export class Agendas {
 
   create(data: AgendaCreate): Observable<Agenda> {
     return this.api.post<Agenda>(this.collectionPath, data);
+  }
+
+  createBulk(data: AgendaBulkCreate): Observable<Agenda[]> {
+    return this.api.post<Agenda[]>(`${this.collectionPath}bulk`, data);
   }
 
   update(id: number, data: AgendaUpdate): Observable<Agenda> {

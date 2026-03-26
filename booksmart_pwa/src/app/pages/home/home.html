@@ -40,34 +40,60 @@
       </div>
     </header>
 
-    <!-- Quick Actions Grid -->
-    <section class="actions-grid">
-      <a routerLink="/app/appointments" class="action-card primary">
-        <span class="action-icon">📅</span>
-        <span class="action-label">Citas</span>
-        <span class="action-desc">Acepta y gestiona reservaciones</span>
-      </a>
-      <a routerLink="/app/services" class="action-card">
-        <span class="action-icon">💈</span>
-        <span class="action-label">Servicios</span>
-        <span class="action-desc">Administra tu catálogo</span>
-      </a>
-      <a routerLink="/app/workers" class="action-card">
-        <span class="action-icon">👥</span>
-        <span class="action-label">Equipo</span>
-        <span class="action-desc">Empleados y accesos</span>
-      </a>
-      <a routerLink="/app/agendas" class="action-card">
-        <span class="action-icon">🕒</span>
-        <span class="action-label">Horarios</span>
-        <span class="action-desc">Apertura y cierre</span>
-      </a>
-      <a routerLink="/app/profile" class="action-card">
-        <span class="action-icon">⚙️</span>
-        <span class="action-label">Perfil</span>
-        <span class="action-desc">Datos del negocio</span>
-      </a>
-    </section>
+    <!-- Inbox / Dashboard View -->
+    <div class="inbox-dashboard">
+      
+      <!-- Bandeja de Entrada -->
+      <section class="inbox-card notifications">
+        <header class="card-header">
+          <h2>Bandeja de Entrada</h2>
+          <span class="badge bubble" *ngIf="unreadCount > 0">{{ unreadCount }} Nuevas</span>
+        </header>
+        <div class="inbox-list" *ngIf="notifications.length > 0; else noNotifications">
+          <div class="inbox-item" *ngFor="let note of notifications.slice(0, 5)" [class.unread]="!note.leida">
+            <div class="item-avatar system">{{ getNotificationIcon(note.tipo) }}</div>
+            <div class="item-content">
+              <h4>{{ note.tipo | titlecase }}</h4>
+              <p>{{ note.mensaje }}</p>
+              <span class="time">{{ getTimeAgo(note.fecha_envio) }}</span>
+            </div>
+          </div>
+        </div>
+        <ng-template #noNotifications>
+          <div style="text-align: center; color: var(--color-text-muted); padding: 1rem;">
+            No tienes notificaciones
+          </div>
+        </ng-template>
+        <button class="btn-primary full-width mt-1" *ngIf="notifications.length > 0">Ver todos los mensajes</button>
+      </section>
+
+      <!-- Próximas Citas -->
+      <section class="inbox-card upcoming">
+        <header class="card-header">
+          <h2>Próximas Citas (Hoy)</h2>
+          <a routerLink="/app/appointments" class="link">Ver agenda completa</a>
+        </header>
+        <div class="appointments-list" *ngIf="todayAppointments.length > 0; else noAppointments">
+          <div class="appointment-card" *ngFor="let appt of todayAppointments">
+            <div class="time-block">
+              <span class="hour">{{ formatTime(appt.hora_inicio).hour }}</span>
+              <span class="meridian">{{ formatTime(appt.hora_inicio).meridian }}</span>
+            </div>
+            <div class="details">
+              <h4>Cita #{{ appt.cita_id }}</h4>
+              <p>ID Cliente: {{ appt.cliente_id }} &bull; ID Servicio: {{ appt.servicio_id }}</p>
+            </div>
+            <div class="status-badge" [ngClass]="appt.estado.toLowerCase()">{{ appt.estado | titlecase }}</div>
+          </div>
+        </div>
+        <ng-template #noAppointments>
+          <div style="text-align: center; color: var(--color-text-muted); padding: 1rem;">
+            No hay citas agendadas para hoy
+          </div>
+        </ng-template>
+      </section>
+
+    </div>
 
   </ng-container>
 </div>

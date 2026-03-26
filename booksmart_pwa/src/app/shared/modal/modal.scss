@@ -17,7 +17,6 @@
 .modal-content {
   background: var(--color-surface);
   width: 100%;
-  max-width: 500px;
   border-radius: 1rem;
   box-shadow: 0 10px 25px rgba(0,0,0,0.15);
   display: flex;
@@ -25,6 +24,11 @@
   max-height: 90vh;
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   border: 1px solid var(--color-border);
+
+  &.modal-sm { max-width: 400px; }
+  &.modal-md { max-width: 500px; }
+  &.modal-lg { max-width: 700px; }
+  &.modal-xl { max-width: 900px; }
 }
 
 .modal-header {
