@@ -1,14 +1,15 @@
 .plans-container {
   padding: 20px;
-  background: #f8f9fa;
+  background: var(--color-surface-muted);
   border-radius: 8px;
   margin-bottom: 20px;
+  border: 1px solid var(--color-border);
 
   h2 {
     margin-top: 0;
     margin-bottom: 20px;
     font-size: 1.5rem;
-    color: #333;
+    color: var(--color-text-strong);
   }
 }
 
@@ -19,22 +20,22 @@
   font-size: 0.95rem;
 
   &.alert-danger {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    background-color: var(--color-danger-soft);
+    color: var(--color-danger);
+    border: 1px solid var(--color-danger);
   }
 
   &.alert-success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+    background-color: var(--color-primary-soft);
+    color: var(--color-primary-strong);
+    border: 1px solid var(--color-primary);
   }
 }
 
 .loading {
   text-align: center;
   padding: 30px;
-  color: #666;
+  color: var(--color-text-muted);
   font-size: 0.95rem;
 }
 
@@ -46,8 +47,8 @@
 }
 
 .plan-card {
-  background: white;
-  border: 2px solid #e0e0e0;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
   border-radius: 8px;
   padding: 20px;
   display: flex;
@@ -55,29 +56,28 @@
   transition: all 0.3s ease;
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-color: #007bff;
+    border-color: var(--color-primary);
   }
 
   &.active {
-    border-color: #28a745;
-    background: #f1f8f4;
+    border-color: var(--color-primary);
+    background: var(--color-primary-soft);
   }
 
   &.selected {
-    border-color: #007bff;
-    background: #f0f7ff;
+    border-color: var(--color-primary-strong);
+    background: var(--color-primary-soft);
   }
 
   h3 {
     margin: 0 0 10px 0;
     font-size: 1.25rem;
-    color: #333;
+    color: var(--color-text-strong);
   }
 
   .description {
     margin: 0 0 15px 0;
-    color: #666;
+    color: var(--color-text-soft);
     font-size: 0.9rem;
     flex-grow: 1;
   }
@@ -86,7 +86,7 @@
     margin: 10px 0;
     font-size: 1.5rem;
     font-weight: bold;
-    color: #007bff;
+    color: var(--color-primary);
   }
 
   .actions {
@@ -103,21 +103,21 @@
     white-space: nowrap;
 
     &.badge-active {
-      background-color: #28a745;
-      color: white;
+      background-color: var(--color-primary);
+      color: var(--color-surface);
     }
   }
 
   .confirm-actions {
     margin-top: 15px;
     padding-top: 15px;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid var(--color-border);
     text-align: center;
 
     p {
       margin: 0 0 10px 0;
       font-size: 0.9rem;
-      color: #666;
+      color: var(--color-text-soft);
     }
 
     button {
@@ -129,7 +129,7 @@
 .no-plans {
   text-align: center;
   padding: 40px 20px;
-  color: #999;
+  color: var(--color-text-muted);
   font-size: 1rem;
 }
 
@@ -148,29 +148,30 @@
   }
 
   &.btn-primary {
-    background-color: #007bff;
-    color: white;
+    background-color: var(--color-primary);
+    color: var(--color-surface);
 
     &:hover:not(:disabled) {
-      background-color: #0056b3;
+      background-color: var(--color-primary-strong);
     }
   }
 
   &.btn-success {
-    background-color: #28a745;
-    color: white;
+    background-color: var(--color-primary-strong);
+    color: var(--color-surface);
 
     &:hover:not(:disabled) {
-      background-color: #218838;
+      background-color: var(--color-primary);
     }
   }
 
   &.btn-secondary {
-    background-color: #6c757d;
-    color: white;
+    background-color: var(--color-surface);
+    color: var(--color-text-strong);
+    border: 1px solid var(--color-border);
 
     &:hover:not(:disabled) {
-      background-color: #5a6268;
+      background-color: var(--color-surface-muted);
     }
   }
 }

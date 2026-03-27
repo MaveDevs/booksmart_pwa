@@ -133,6 +133,12 @@ export class Negocio implements OnInit {
       this.router.navigate(['/app/home']);
       return;
     }
+
+    const requestedTab = this.route.snapshot.queryParamMap.get('tab');
+    if (requestedTab === 'suscripcion') {
+      this.activeTab = 'suscripcion';
+    }
+
     this.establishmentId = +id;
     this.loadEstablishment();
   }
