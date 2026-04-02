@@ -32,6 +32,12 @@
   }
 }
 
+.content--no-navbar {
+  .container-limit {
+    padding-bottom: 20px;
+  }
+}
+
 @keyframes route-fade-in {
   from {
     opacity: 0;

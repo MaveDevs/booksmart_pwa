@@ -20,12 +20,12 @@ export interface Appointment {
   providedIn: 'root',
 })
 export class Appointments {
-  private readonly basePath = '/api/v1/appointments';
+  private readonly basePath = '/api/v1/appointments/';
 
   constructor(private api: Api) {}
 
   getMine(): Observable<Appointment[]> {
-    return this.api.get<Appointment[]>(`${this.basePath}/me`);
+    return this.api.get<Appointment[]>(`${this.basePath}me`);
   }
 
   getByEstablishment(establishmentId: number): Observable<Appointment[]> {
@@ -34,6 +34,14 @@ export class Appointments {
   }
 
   updateStatus(appointmentId: number, estado: AppointmentStatus): Observable<Appointment> {
-    return this.api.patch<Appointment>(`${this.basePath}/${appointmentId}`, { estado });
+    return this.api.patch<Appointment>(`${this.basePath}${appointmentId}`, { estado });
+  }
+
+  accept(appointmentId: number): Observable<Appointment> {
+    return this.api.post<Appointment>(`${this.basePath}${appointmentId}/accept`, {});
+  }
+
+  decline(appointmentId: number): Observable<Appointment> {
+    return this.api.post<Appointment>(`${this.basePath}${appointmentId}/decline`, {});
   }
 }

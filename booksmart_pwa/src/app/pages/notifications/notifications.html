@@ -1,0 +1,59 @@
+<div class="notifications-page">
+  <header class="page-header">
+    <div>
+      <h1>Notificaciones</h1>
+      <p>Revisa alertas, mensajes y eventos importantes en tiempo real.</p>
+    </div>
+    <button type="button" class="btn-primary" (click)="enablePushNotifications()" [disabled]="isRegisteringPush">
+      {{ isRegisteringPush ? 'Activando...' : 'Activar notificaciones push' }}
+    </button>
+  </header>
+
+  <app-alert [message]="errorMessage" [type]="'error'" [show]="!!errorMessage"></app-alert>
+  <app-alert [message]="successMessage" [type]="'success'" [show]="!!successMessage"></app-alert>
+
+  <section class="card stats-card">
+    <div>
+      <span class="stat-label">Total</span>
+      <strong>{{ notifications.length }}</strong>
+    </div>
+    <div>
+      <span class="stat-label">Sin leer</span>
+      <strong>{{ unreadCount }}</strong>
+    </div>
+  </section>
+
+  <section class="card">
+    <div *ngIf="isLoading" class="empty-state">
+      <p>Cargando notificaciones...</p>
+    </div>
+
+    <div *ngIf="!isLoading && notifications.length === 0" class="empty-state">
+      <h2>No tienes notificaciones todavía</h2>
+      <p>Cuando lleguen mensajes, citas o alertas aparecerán aquí.</p>
+    </div>
+
+    <div class="notifications-list" *ngIf="!isLoading && notifications.length > 0">
+      <article
+        class="notification-item"
+        *ngFor="let notification of notifications; trackBy: trackByNotificationId"
+        [class.unread]="!notification.leida">
+        <div class="notification-head">
+          <span class="badge type-{{ notification.tipo | lowercase }}">{{ notification.tipo }}</span>
+          <time>{{ notification.fecha_envio | date: 'short' }}</time>
+        </div>
+        <p>{{ notification.mensaje }}</p>
+        <div class="notification-actions">
+          <button
+            type="button"
+            class="btn-secondary"
+            *ngIf="!notification.leida"
+            (click)="markAsRead(notification)">
+            Marcar como leída
+          </button>
+          <span class="read-state" *ngIf="notification.leida">Leída</span>
+        </div>
+      </article>
+    </div>
+  </section>
+</div>

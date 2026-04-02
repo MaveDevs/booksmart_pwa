@@ -1,8 +1,8 @@
-import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { Subject, finalize, takeUntil } from 'rxjs';
 import { Auth } from '../../services/auth/auth';
 import {
   Establishment,
@@ -32,14 +32,16 @@ import {
   Appointments,
   AppointmentStatus,
 } from '../../services/appointments/appointments';
+import { ChatMessage, ChatMessageCreate, MessagesService } from '../../services/messages/messages';
 import { Rating, Ratings } from '../../services/ratings/ratings';
 import { Subscription, SubscriptionsService } from '../../services/subscriptions/subscriptions';
+import { RealtimeService, RealtimeEvent } from '../../services/realtime/realtime';
 import { Alert } from '../../shared/alert/alert';
 import { ConfirmModal } from '../../shared/confirm-modal/confirm-modal';
 import { PlansList } from '../../components/plans-list/plans-list';
 import { CurrentSubscription } from '../../components/current-subscription/current-subscription';
 
-type TabId = 'general' | 'servicios' | 'horarios' | 'calendario' | 'resenas' | 'suscripcion';
+type TabId = 'general' | 'servicios' | 'horarios' | 'calendario' | 'mensajes' | 'resenas' | 'suscripcion';
 
 @Component({
   selector: 'app-negocio',
@@ -48,7 +50,7 @@ type TabId = 'general' | 'servicios' | 'horarios' | 'calendario' | 'resenas' | '
   templateUrl: './negocio.html',
   styleUrl: './negocio.scss',
 })
-export class Negocio implements OnInit {
+export class Negocio implements OnInit, OnDestroy {
   establishmentId!: number;
   establishment: Establishment | null = null;
   isLoadingEstablishment = true;
@@ -101,6 +103,11 @@ export class Negocio implements OnInit {
   showAppointmentModal = false;
   selectedAppointment: Appointment | null = null;
   isUpdatingAppointment = false;
+  messages: ChatMessage[] = [];
+  selectedChatAppointment: Appointment | null = null;
+  isLoadingMessages = false;
+  isSendingMessage = false;
+  messageDraft = '';
 
   // --- Reseñas tab ---
   ratings: Rating[] = [];
@@ -114,20 +121,29 @@ export class Negocio implements OnInit {
   successMessage = '';
 
   private cdr = inject(ChangeDetectorRef);
+  private readonly destroy$ = new Subject<void>();
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private authService: Auth,
     private establishmentsService: Establishments,
     private profilesService: Profiles,
     private businessServicesApi: BusinessServices,
     private agendasService: Agendas,
     private appointmentsService: Appointments,
+    private messagesService: MessagesService,
     private ratingsService: Ratings,
     private subscriptionsService: SubscriptionsService,
+    private realtimeService: RealtimeService,
   ) {}
 
   ngOnInit(): void {
+    this.realtimeService.connect(this.authService.getToken());
+    this.realtimeService.events$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((event) => this.handleRealtimeEvent(event));
+
     const id = this.route.snapshot.paramMap.get('id');
     if (!id || isNaN(+id)) {
       this.router.navigate(['/app/home']);
@@ -141,6 +157,11 @@ export class Negocio implements OnInit {
 
     this.establishmentId = +id;
     this.loadEstablishment();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   setTab(tab: TabId): void {
@@ -158,6 +179,7 @@ export class Negocio implements OnInit {
     if (tab === 'servicios') this.loadServices();
     else if (tab === 'horarios') this.loadAgendas();
     else if (tab === 'calendario') this.loadAppointments();
+    else if (tab === 'mensajes') this.loadMessagesTab();
     else if (tab === 'resenas') this.loadRatings();
     else if (tab === 'suscripcion') this.loadSubscription();
   }
@@ -435,12 +457,127 @@ export class Negocio implements OnInit {
       finalize(() => { this.isLoadingAppointments = false; this.cdr.markForCheck(); }),
     ).subscribe({
       next: (appts) => {
-        this.appointments = appts;
+        this.appointments = this.sortAppointments(appts);
         if (this.selectedDay) {
           this.selectedDayAppointments = this.getAppointmentsForDay(this.selectedDay);
         }
+        if (this.activeTab === 'mensajes') {
+          this.ensureChatSelection();
+        }
       },
       error: (err) => { this.errorMessage = err?.error?.detail || 'No se pudieron cargar las citas.'; },
+    });
+  }
+
+  private loadMessagesTab(): void {
+    if (!this.appointments.length) {
+      this.loadAppointments();
+      return;
+    }
+
+    this.ensureChatSelection();
+  }
+
+  selectChatAppointment(appointment: Appointment): void {
+    this.selectedChatAppointment = appointment;
+    this.activeTab = 'mensajes';
+    this.clearMessages();
+    this.loadMessagesForAppointment(appointment.cita_id);
+  }
+
+  private loadMessagesForAppointment(citaId: number): void {
+    this.isLoadingMessages = true;
+    this.messagesService.getByAppointment(citaId).pipe(
+      finalize(() => { this.isLoadingMessages = false; this.cdr.markForCheck(); }),
+    ).subscribe({
+      next: (messages) => {
+        this.messages = this.sortMessages(messages);
+      },
+      error: (err) => {
+        this.messages = [];
+        this.errorMessage = err?.error?.detail || 'No se pudieron cargar los mensajes.';
+      },
+    });
+  }
+
+  sendMessage(): void {
+    if (!this.selectedChatAppointment) {
+      this.errorMessage = 'Selecciona una cita para enviar mensajes.';
+      return;
+    }
+
+    const currentUser = this.authService.getUser();
+    if (!currentUser) {
+      this.errorMessage = 'No se encontró una sesión activa.';
+      return;
+    }
+
+    const content = this.messageDraft.trim();
+    if (!content) {
+      this.errorMessage = 'Escribe un mensaje antes de enviar.';
+      return;
+    }
+
+    const payload: ChatMessageCreate = {
+      cita_id: this.selectedChatAppointment.cita_id,
+      emisor_id: currentUser.usuario_id,
+      contenido: content,
+    };
+
+    this.isSendingMessage = true;
+    this.clearMessages();
+    this.messagesService.create(payload).pipe(
+      finalize(() => { this.isSendingMessage = false; this.cdr.markForCheck(); }),
+    ).subscribe({
+      next: (message) => {
+        this.messages = this.sortMessages([...this.messages, message]);
+        this.messageDraft = '';
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.detail || 'No se pudo enviar el mensaje.';
+      },
+    });
+  }
+
+  acceptAppointment(): void {
+    if (!this.selectedAppointment) {
+      return;
+    }
+
+    this.isUpdatingAppointment = true;
+    this.clearMessages();
+    this.appointmentsService.accept(this.selectedAppointment.cita_id).pipe(
+      finalize(() => { this.isUpdatingAppointment = false; this.cdr.markForCheck(); }),
+    ).subscribe({
+      next: (updated) => {
+        this.applyAppointmentUpdate(updated);
+        this.successMessage = 'Cita confirmada correctamente.';
+        this.closeAppointmentModal();
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.detail || 'No se pudo confirmar la cita.';
+      },
+    });
+  }
+
+  declineAppointment(): void {
+    if (!this.selectedAppointment) {
+      return;
+    }
+
+    this.isUpdatingAppointment = true;
+    this.clearMessages();
+    this.appointmentsService.decline(this.selectedAppointment.cita_id).pipe(
+      finalize(() => { this.isUpdatingAppointment = false; this.cdr.markForCheck(); }),
+    ).subscribe({
+      next: (updated) => {
+        this.applyAppointmentUpdate(updated);
+        this.successMessage = 'Cita rechazada correctamente.';
+        this.closeAppointmentModal();
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.detail || 'No se pudo rechazar la cita.';
+      },
     });
   }
 
@@ -475,7 +612,7 @@ export class Negocio implements OnInit {
 
   getAppointmentsForDay(date: Date): Appointment[] {
     const dateStr = this.toDateString(date);
-    return this.appointments.filter(a => a.fecha === dateStr);
+    return this.sortAppointments(this.appointments.filter((appointment) => appointment.fecha === dateStr));
   }
 
   selectDay(date: Date): void {
@@ -501,16 +638,21 @@ export class Negocio implements OnInit {
       finalize(() => { this.isUpdatingAppointment = false; this.cdr.markForCheck(); }),
     ).subscribe({
       next: (updated) => {
+        this.applyAppointmentUpdate(updated);
         this.successMessage = 'Estado de cita actualizado.';
-        const idx = this.appointments.findIndex(a => a.cita_id === updated.cita_id);
-        if (idx >= 0) this.appointments[idx] = updated;
-        if (this.selectedDay) {
-          this.selectedDayAppointments = this.getAppointmentsForDay(this.selectedDay);
-        }
         this.closeAppointmentModal();
       },
       error: (err) => { this.errorMessage = err?.error?.detail || 'No se pudo actualizar la cita.'; },
     });
+  }
+
+  openAppointmentMessages(): void {
+    if (!this.selectedAppointment) {
+      return;
+    }
+
+    this.selectChatAppointment(this.selectedAppointment);
+    this.closeAppointmentModal();
   }
 
   getStatusLabel(status: string): string {
@@ -540,6 +682,83 @@ export class Negocio implements OnInit {
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
+  }
+
+  private ensureChatSelection(): void {
+    if (!this.appointments.length) {
+      this.selectedChatAppointment = null;
+      this.messages = [];
+      return;
+    }
+
+    const currentSelection = this.selectedChatAppointment
+      ? this.appointments.find((appointment) => appointment.cita_id === this.selectedChatAppointment?.cita_id)
+      : null;
+
+    this.selectedChatAppointment = currentSelection || this.appointments[0];
+
+    if (this.selectedChatAppointment) {
+      this.loadMessagesForAppointment(this.selectedChatAppointment.cita_id);
+    }
+  }
+
+  private applyAppointmentUpdate(updated: Appointment): void {
+    this.appointments = this.appointments.map((appointment) => (
+      appointment.cita_id === updated.cita_id ? updated : appointment
+    ));
+
+    if (this.selectedAppointment?.cita_id === updated.cita_id) {
+      this.selectedAppointment = updated;
+    }
+
+    if (this.selectedChatAppointment?.cita_id === updated.cita_id) {
+      this.selectedChatAppointment = updated;
+    }
+
+    if (this.selectedDay) {
+      this.selectedDayAppointments = this.getAppointmentsForDay(this.selectedDay);
+    }
+  }
+
+  private sortAppointments(appointments: Appointment[]): Appointment[] {
+    return [...appointments].sort((left, right) => {
+      const leftDate = `${left.fecha}T${left.hora_inicio}`;
+      const rightDate = `${right.fecha}T${right.hora_inicio}`;
+      return new Date(leftDate).getTime() - new Date(rightDate).getTime();
+    });
+  }
+
+  private sortMessages(messages: ChatMessage[]): ChatMessage[] {
+    return [...messages].sort(
+      (left, right) => new Date(left.fecha_envio).getTime() - new Date(right.fecha_envio).getTime(),
+    );
+  }
+
+  isCurrentUserMessage(message: ChatMessage): boolean {
+    return this.authService.getUser()?.usuario_id === message.emisor_id;
+  }
+
+  private handleRealtimeEvent(event: RealtimeEvent): void {
+    if (event.type === 'message') {
+      const message = event as RealtimeEvent & { data: ChatMessage };
+      const payload = message.data;
+      if (this.selectedChatAppointment?.cita_id === payload.cita_id) {
+        if (!this.messages.some((existing) => existing.mensaje_id === payload.mensaje_id)) {
+          this.messages = this.sortMessages([...this.messages, payload]);
+          this.cdr.markForCheck();
+        }
+      }
+      return;
+    }
+
+    if (event.type === 'appointment') {
+      const appointmentEvent = event as RealtimeEvent & { data: { cita_id: number; estado: AppointmentStatus } };
+      const appointment = this.appointments.find((item) => item.cita_id === appointmentEvent.data.cita_id);
+      if (appointment) {
+        this.applyAppointmentUpdate({ ...appointment, estado: appointmentEvent.data.estado });
+        this.cdr.markForCheck();
+      }
+    }
   }
 
   // ─── RATINGS ─────────────────────────────────────────────────────────────
@@ -583,4 +802,5 @@ export class Negocio implements OnInit {
 
   trackByAppointmentId(_: number, a: Appointment): number { return a.cita_id; }
   trackByRatingId(_: number, r: Rating): number { return r.resena_id; }
+  trackByMessageId(_: number, message: ChatMessage): number { return message.mensaje_id; }
 }

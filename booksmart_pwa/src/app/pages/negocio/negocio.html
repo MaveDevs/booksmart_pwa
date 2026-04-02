@@ -32,9 +32,10 @@
 
       <aside class="negocio-sidebar">
         <section class="sidebar-section">
-          <p class="sidebar-title">Operación</p>
+          <p class="sidebar-title">Operativas</p>
           <nav class="sidebar-nav">
             <button class="sidebar-btn" [class.active]="activeTab === 'calendario'" type="button" (click)="setTab('calendario')">Calendario</button>
+            <button class="sidebar-btn" [class.active]="activeTab === 'mensajes'" type="button" (click)="setTab('mensajes')">Mensajes</button>
             <button class="sidebar-btn" [class.active]="activeTab === 'horarios'" type="button" (click)="setTab('horarios')">Horarios</button>
             <button class="sidebar-btn" [class.active]="activeTab === 'servicios'" type="button" (click)="setTab('servicios')">Servicios</button>
             <button class="sidebar-btn" [class.active]="activeTab === 'resenas'" type="button" (click)="setTab('resenas')">Reseñas</button>
@@ -42,7 +43,7 @@
         </section>
 
         <section class="sidebar-section">
-          <p class="sidebar-title">Configuración</p>
+          <p class="sidebar-title">Administrativas</p>
           <nav class="sidebar-nav">
             <button class="sidebar-btn" [class.active]="activeTab === 'general'" type="button" (click)="setTab('general')">Perfil del negocio</button>
             <button class="sidebar-btn" [class.active]="activeTab === 'suscripcion'" type="button" (click)="setTab('suscripcion')">Suscripción</button>
@@ -290,6 +291,85 @@
       </div>
     </div>
 
+    <!-- ═══════════════════════ TAB: MENSAJES ═══════════════════════ -->
+    <div class="tab-content" *ngIf="activeTab === 'mensajes'">
+      <section class="card messages-layout">
+        <aside class="messages-sidebar">
+          <div class="section-head compact">
+            <h2>Conversaciones</h2>
+            <span class="hint">{{ appointments.length }} citas</span>
+          </div>
+
+          <div class="messages-thread-list" *ngIf="appointments.length > 0">
+            <button
+              type="button"
+              class="messages-thread"
+              *ngFor="let appointment of appointments; trackBy: trackByAppointmentId"
+              [class.active]="selectedChatAppointment?.cita_id === appointment.cita_id"
+              (click)="selectChatAppointment(appointment)">
+              <strong>#{{ appointment.cita_id }} · Servicio {{ appointment.servicio_id }}</strong>
+              <span>{{ appointment.fecha }} · {{ appointment.hora_inicio.substring(0, 5) }}</span>
+              <small>Cliente #{{ appointment.cliente_id }} · {{ getStatusLabel(appointment.estado) }}</small>
+            </button>
+          </div>
+
+          <p class="hint" *ngIf="appointments.length === 0">Todavía no hay citas para mostrar chats.</p>
+        </aside>
+
+        <div class="messages-panel">
+          <ng-container *ngIf="selectedChatAppointment; else noChatSelection">
+            <div class="messages-panel-header">
+              <div>
+                <h2>Cita #{{ selectedChatAppointment.cita_id }}</h2>
+                <p class="hint">
+                  Cliente #{{ selectedChatAppointment.cliente_id }} ·
+                  {{ selectedChatAppointment.fecha }} ·
+                  {{ selectedChatAppointment.hora_inicio.substring(0, 5) }} – {{ selectedChatAppointment.hora_fin.substring(0, 5) }}
+                </p>
+              </div>
+              <span class="badge status-{{ selectedChatAppointment.estado | lowercase }}">{{ getStatusLabel(selectedChatAppointment.estado) }}</span>
+            </div>
+
+            <div class="messages-list">
+              <p *ngIf="isLoadingMessages" class="hint">Cargando mensajes...</p>
+              <p *ngIf="!isLoadingMessages && messages.length === 0" class="hint">Aún no hay mensajes en esta conversación.</p>
+
+              <article
+                class="message-item"
+                *ngFor="let message of messages; trackBy: trackByMessageId"
+                [class.mine]="isCurrentUserMessage(message)">
+                <div class="message-meta">
+                  <strong>{{ isCurrentUserMessage(message) ? 'Tú' : 'Cliente' }}</strong>
+                  <time>{{ message.fecha_envio | date: 'short' }}</time>
+                </div>
+                <p>{{ message.contenido }}</p>
+              </article>
+            </div>
+
+            <div class="message-composer">
+              <textarea
+                class="form-input"
+                rows="3"
+                [(ngModel)]="messageDraft"
+                placeholder="Escribe un mensaje para el cliente"></textarea>
+              <div class="actions">
+                <button class="btn-primary" type="button" [disabled]="isSendingMessage" (click)="sendMessage()">
+                  {{ isSendingMessage ? 'Enviando...' : 'Enviar mensaje' }}
+                </button>
+              </div>
+            </div>
+          </ng-container>
+
+          <ng-template #noChatSelection>
+            <div class="empty-chat">
+              <h3>Selecciona una cita</h3>
+              <p>Elige una conversación desde la lista para ver y responder mensajes.</p>
+            </div>
+          </ng-template>
+        </div>
+      </section>
+    </div>
+
     <!-- ═══════════════════════ TAB: RESEÑAS ═══════════════════════ -->
     <div class="tab-content" *ngIf="activeTab === 'resenas'">
       <section class="card">
@@ -389,8 +469,16 @@
         type="button"
         *ngIf="selectedAppointment.estado === 'PENDIENTE'"
         [disabled]="isUpdatingAppointment"
-        (click)="updateAppointmentStatus('CONFIRMADA')">
+        (click)="acceptAppointment()">
         Confirmar cita
+      </button>
+      <button
+        class="btn-secondary"
+        type="button"
+        *ngIf="selectedAppointment.estado === 'PENDIENTE'"
+        [disabled]="isUpdatingAppointment"
+        (click)="declineAppointment()">
+        Rechazar cita
       </button>
       <button
         class="btn-primary"
@@ -407,6 +495,9 @@
         [disabled]="isUpdatingAppointment"
         (click)="updateAppointmentStatus('CANCELADA')">
         Cancelar cita
+      </button>
+      <button class="btn-secondary" type="button" (click)="openAppointmentMessages()">
+        Ver mensajes
       </button>
       <button class="btn-secondary" type="button" (click)="closeAppointmentModal()">Cerrar</button>
     </div>

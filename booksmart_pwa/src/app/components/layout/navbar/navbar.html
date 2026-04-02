@@ -15,6 +15,13 @@
         Mis Negocios
       </a>
       <a
+        routerLink="/app/notifications"
+        routerLinkActive="active"
+        class="nav-item nav-badge-link">
+        <span>Notificaciones</span>
+        <span class="nav-badge" *ngIf="unreadNotificationsCount > 0">{{ unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount }}</span>
+      </a>
+      <a
         routerLink="/app/subscriptions"
         routerLinkActive="active"
         class="nav-item">

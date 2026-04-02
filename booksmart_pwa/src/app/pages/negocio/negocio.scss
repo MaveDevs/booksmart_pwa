@@ -50,8 +50,6 @@
   }
 }
 
-// ── WORKSPACE / SIDEBAR ───────────────────────────────────────────────────
-
 .negocio-workspace {
   display: grid;
   gap: 1rem;
@@ -64,16 +62,11 @@
 
 .negocio-sidebar {
   display: grid;
-  gap: 0.75rem;
 
   @media (min-width: 980px) {
     position: sticky;
     top: 0.75rem;
   }
-}
-
-.sidebar-section {
-  padding: 0.2rem 0;
 }
 
 .sidebar-title {
@@ -115,14 +108,10 @@
   }
 }
 
-// ── TAB CONTENT ─────────────────────────────────────────────────────────────
-
 .tab-content {
   display: grid;
   gap: 1rem;
 }
-
-// ── CARD (reused pattern) ──────────────────────────────────────────────────
 
 .card {
   background: var(--color-surface);
@@ -193,6 +182,10 @@ label {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 0.75rem;
+  
+  &.compact {
+    margin-bottom: 0.5rem;
+  }
 }
 
 .hint {
@@ -200,8 +193,6 @@ label {
   font-size: 0.88rem;
   margin-bottom: 0.5rem;
 }
-
-// ── SERVICES LIST ──────────────────────────────────────────────────────────
 
 .service-list {
   display: grid;
@@ -246,8 +237,6 @@ label {
   flex-wrap: wrap;
 }
 
-// ── HORARIOS ───────────────────────────────────────────────────────────────
-
 .horarios-list {
   display: grid;
   gap: 0.5rem;
@@ -284,8 +273,6 @@ label {
   color: var(--color-text-muted);
   font-size: 0.85rem;
 }
-
-// ── CALENDAR ───────────────────────────────────────────────────────────────
 
 .calendario-layout {
   display: grid;
@@ -415,8 +402,6 @@ label {
 .status-cancelada  { background: var(--color-danger-soft); color: var(--color-danger); }
 .status-completada { background: #DCFCE7; color: #166534; }
 
-// ── RATINGS ────────────────────────────────────────────────────────────────
-
 .rating-summary {
   display: flex;
   align-items: baseline;
@@ -466,8 +451,6 @@ label {
   margin-left: auto;
 }
 
-// ── SUBSCRIPTION ──────────────────────────────────────────────────────────
-
 .subscription-info {
   display: grid;
   gap: 0.5rem;
@@ -477,8 +460,6 @@ label {
     color: var(--color-text);
   }
 }
-
-// ── MODALS ─────────────────────────────────────────────────────────────────
 
 .modal-backdrop {
   position: fixed;
@@ -526,8 +507,6 @@ label {
   padding-top: 0.5rem;
   border-top: 1px solid var(--color-border);
 }
-
-// ── BUTTONS ────────────────────────────────────────────────────────────────
 
 .btn-primary {
   display: inline-flex;
