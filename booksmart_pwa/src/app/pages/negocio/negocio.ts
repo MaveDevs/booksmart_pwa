@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, finalize, takeUntil } from 'rxjs';
 import { Auth } from '../../services/auth/auth';
+import { ActiveEstablishmentService } from '../../services/establishments/active-establishment';
 import {
   Establishment,
   Establishments,
@@ -128,6 +129,7 @@ export class Negocio implements OnInit, OnDestroy {
     private router: Router,
     private authService: Auth,
     private establishmentsService: Establishments,
+    private activeEstablishmentService: ActiveEstablishmentService,
     private profilesService: Profiles,
     private businessServicesApi: BusinessServices,
     private agendasService: Agendas,
@@ -144,8 +146,18 @@ export class Negocio implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((event) => this.handleRealtimeEvent(event));
 
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id || isNaN(+id)) {
+    const routeId = this.route.snapshot.paramMap.get('id');
+    if (routeId && !isNaN(+routeId)) {
+      this.activeEstablishmentService.setEstablishmentId(+routeId);
+      this.router.navigate(['/app/negocio'], {
+        queryParams: this.route.snapshot.queryParams,
+        replaceUrl: true,
+      });
+      return;
+    }
+
+    const storedId = this.activeEstablishmentService.getEstablishmentId();
+    if (!storedId) {
       this.router.navigate(['/app/home']);
       return;
     }
@@ -155,7 +167,7 @@ export class Negocio implements OnInit, OnDestroy {
       this.activeTab = 'suscripcion';
     }
 
-    this.establishmentId = +id;
+    this.establishmentId = storedId;
     this.loadEstablishment();
   }
 

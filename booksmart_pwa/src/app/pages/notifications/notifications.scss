@@ -11,6 +11,13 @@
   flex-wrap: wrap;
 }
 
+.support-hint {
+  margin-top: 0.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
 .stats-card {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

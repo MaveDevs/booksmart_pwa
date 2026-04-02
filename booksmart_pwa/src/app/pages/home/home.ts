@@ -10,6 +10,7 @@ import {
   EstablishmentCreate,
   Establishments,
 } from '../../services/establishments/establishments';
+import { ActiveEstablishmentService } from '../../services/establishments/active-establishment';
 import { Alert } from '../../shared/alert/alert';
 
 @Component({
@@ -49,7 +50,8 @@ export class Home implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private authService: Auth,
-    private establishmentsService: Establishments
+    private establishmentsService: Establishments,
+    private activeEstablishmentService: ActiveEstablishmentService
   ) {}
 
   ngOnInit(): void {
@@ -76,7 +78,8 @@ export class Home implements OnInit {
   }
 
   goToNegocio(id: number): void {
-    this.router.navigate(['/app/negocio', id]);
+    this.activeEstablishmentService.setEstablishmentId(id);
+    this.router.navigate(['/app/negocio']);
   }
 
   retryLoad(): void {
@@ -134,6 +137,7 @@ export class Home implements OnInit {
       }))
       .subscribe({
         next: (establishment) => {
+          this.activeEstablishmentService.setEstablishmentId(establishment.establecimiento_id);
           this.establishments = [establishment, ...this.establishments];
           this.establishmentForm = {
             nombre: '',

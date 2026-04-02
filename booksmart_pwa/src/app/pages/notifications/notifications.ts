@@ -22,6 +22,14 @@ export class NotificationsPage implements OnInit {
   private readonly notificationsService = inject(NotificationsService);
   private readonly pushSubscriptionsService = inject(PushSubscriptionsService);
 
+  get canEnablePushNotifications(): boolean {
+    return this.pushSubscriptionsService.isBrowserPushSupported();
+  }
+
+  get pushSupportHint(): string {
+    return this.pushSubscriptionsService.getUnsupportedReason();
+  }
+
   ngOnInit(): void {
     this.loadNotifications();
   }

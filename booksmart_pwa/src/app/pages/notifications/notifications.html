@@ -3,8 +3,9 @@
     <div>
       <h1>Notificaciones</h1>
       <p>Revisa alertas, mensajes y eventos importantes en tiempo real.</p>
+      <p class="support-hint" *ngIf="!canEnablePushNotifications">{{ pushSupportHint }}</p>
     </div>
-    <button type="button" class="btn-primary" (click)="enablePushNotifications()" [disabled]="isRegisteringPush">
+    <button type="button" class="btn-primary" (click)="enablePushNotifications()" [disabled]="isRegisteringPush || !canEnablePushNotifications">
       {{ isRegisteringPush ? 'Activando...' : 'Activar notificaciones push' }}
     </button>
   </header>

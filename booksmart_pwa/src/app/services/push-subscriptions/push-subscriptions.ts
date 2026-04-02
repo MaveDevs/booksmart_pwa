@@ -27,9 +27,58 @@ export class PushSubscriptionsService {
     return this.api.get<PushSubscriptionRecord[]>(this.basePath);
   }
 
+  isBrowserPushSupported(): boolean {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+      return false;
+    }
+
+    if (!window.isSecureContext) {
+      return false;
+    }
+
+    if (!('serviceWorker' in navigator)) {
+      return false;
+    }
+
+    if (!('PushManager' in window)) {
+      return false;
+    }
+
+    if (typeof Notification === 'undefined') {
+      return false;
+    }
+
+    return true;
+  }
+
+  getUnsupportedReason(): string {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+      return 'Las notificaciones push no están disponibles fuera del navegador.';
+    }
+
+    if (!window.isSecureContext) {
+      return 'Las notificaciones push requieren HTTPS.';
+    }
+
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isSafari = userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('chromium') && !userAgent.includes('edg');
+
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      return isSafari
+        ? 'Safari no soporta Web Push en esta plataforma.'
+        : 'Tu navegador no soporta Service Workers o Web Push.';
+    }
+
+    if (typeof Notification === 'undefined') {
+      return 'Tu navegador no soporta notificaciones.';
+    }
+
+    return 'Las notificaciones push no están disponibles en este entorno.';
+  }
+
   async registerCurrentDevice(): Promise<PushSubscriptionRecord> {
-    if (!this.swPush.isEnabled) {
-      throw new Error('Las notificaciones push no están disponibles en este entorno.');
+    if (!this.isBrowserPushSupported()) {
+      throw new Error(this.getUnsupportedReason());
     }
 
     if (!environment.vapidPublicKey) {
@@ -50,6 +99,8 @@ export class PushSubscriptionsService {
         throw new Error('No se concedió permiso para notificaciones.');
       }
     }
+
+    await navigator.serviceWorker.ready;
 
     const subscription = await this.swPush.requestSubscription({
       serverPublicKey: environment.vapidPublicKey,

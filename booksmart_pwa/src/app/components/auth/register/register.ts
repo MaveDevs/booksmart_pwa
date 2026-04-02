@@ -18,10 +18,10 @@ export class Register {
   correo = '';
   password = '';
   confirmPassword = '';
-  isOwner = true;
   errorMessage = '';
   successMessage = '';
   isLoading = false;
+  private readonly ownerRoleId = 2;
 
   constructor(
     private router: Router,
@@ -53,7 +53,7 @@ export class Register {
       nombre: this.nombre,
       apellido: this.apellido,
       correo: this.correo,
-      rol_id: this.isOwner ? 2 : 3,
+      rol_id: this.ownerRoleId,
       activo: true,
       contrasena: this.password
     };

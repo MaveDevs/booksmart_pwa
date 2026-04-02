@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { Api } from '../api';
+import { ActiveEstablishmentService } from '../establishments/active-establishment';
 
 export interface LoginRequest {
   email: string;
@@ -38,7 +39,10 @@ export interface AuthResponse {
 export class Auth {
   private currentUser: User | null = null;
 
-  constructor(private api: Api) {
+  constructor(
+    private api: Api,
+    private activeEstablishmentService: ActiveEstablishmentService,
+  ) {
     this.loadUserFromStorage();
   }
 
@@ -59,6 +63,7 @@ export class Auth {
   logout(): Observable<any> {
     this.removeToken();
     this.removeUser();
+    this.activeEstablishmentService.clear();
     return this.api.post('/api/v1/auth/logout', {});
   }
 

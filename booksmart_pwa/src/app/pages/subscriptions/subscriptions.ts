@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { Auth } from '../../services/auth/auth';
+import { ActiveEstablishmentService } from '../../services/establishments/active-establishment';
 import { Establishment, Establishments } from '../../services/establishments/establishments';
 import { Alert } from '../../shared/alert/alert';
 
@@ -24,6 +25,7 @@ export class SubscriptionsPage implements OnInit {
     private router: Router,
     private authService: Auth,
     private establishmentsService: Establishments,
+    private activeEstablishmentService: ActiveEstablishmentService,
   ) {}
 
   ngOnInit(): void {
@@ -31,7 +33,8 @@ export class SubscriptionsPage implements OnInit {
   }
 
   goToSubscription(establishmentId: number): void {
-    this.router.navigate(['/app/negocio', establishmentId], {
+    this.activeEstablishmentService.setEstablishmentId(establishmentId);
+    this.router.navigate(['/app/negocio'], {
       queryParams: { tab: 'suscripcion' },
     });
   }

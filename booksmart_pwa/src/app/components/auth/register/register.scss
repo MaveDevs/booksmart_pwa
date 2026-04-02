@@ -41,6 +41,18 @@
   margin-bottom: 1.75rem;
 }
 
+.auth-note {
+  margin-bottom: 1.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(31, 191, 159, 0.08);
+  border: 1px solid rgba(31, 191, 159, 0.18);
+  color: var(--color-text-strong);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
 .logo-container {
   display: flex;
   justify-content: center;
