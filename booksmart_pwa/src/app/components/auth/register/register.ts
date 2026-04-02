@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Auth, RegisterRequest } from '../../../services/auth/auth';
 import { Alert } from '../../../shared/alert/alert';
@@ -7,7 +8,7 @@ import { Alert } from '../../../shared/alert/alert';
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [FormsModule, RouterLink, Alert],
+  imports: [CommonModule, FormsModule, RouterLink, Alert],
   templateUrl: './register.html',
   styleUrl: './register.scss'
 })
@@ -17,6 +18,7 @@ export class Register {
   correo = '';
   password = '';
   confirmPassword = '';
+  isOwner = true;
   errorMessage = '';
   successMessage = '';
   isLoading = false;
@@ -51,7 +53,7 @@ export class Register {
       nombre: this.nombre,
       apellido: this.apellido,
       correo: this.correo,
-      rol_id: 2, // Rol dueño de negocio
+      rol_id: this.isOwner ? 2 : 3,
       activo: true,
       contrasena: this.password
     };

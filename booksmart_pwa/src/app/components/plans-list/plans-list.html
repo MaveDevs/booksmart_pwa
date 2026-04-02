@@ -1,0 +1,55 @@
+<div class="plans-container">
+  <h2>Planes Disponibles</h2>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    Cargando planes...
+  </div>
+
+  <div *ngIf="!isLoading && plans.length > 0" class="plans-grid">
+    <div *ngFor="let plan of plans" class="plan-card" [class.active]="plan.plan_id === currentSubscriptionPlanId" [class.selected]="plan.plan_id === selectedPlanId">
+      <h3>{{ plan.nombre }}</h3>
+      <p class="description">{{ plan.descripcion }}</p>
+      <p class="price">{{ getPriceFormatted(plan.precio) }} / mes</p>
+
+      <div class="actions">
+        <button
+          *ngIf="plan.plan_id !== currentSubscriptionPlanId"
+          class="btn btn-primary"
+          (click)="selectPlan(plan.plan_id)"
+          [disabled]="isSelectingPlan"
+        >
+          Seleccionar
+        </button>
+        <span *ngIf="plan.plan_id === currentSubscriptionPlanId" class="badge badge-active">
+          Plan Actual
+        </span>
+      </div>
+
+      <div *ngIf="plan.plan_id === selectedPlanId" class="confirm-actions">
+        <p>¿Confirmas el cambio a este plan?</p>
+        <button
+          class="btn btn-success"
+          (click)="confirmSelectPlan(plan.plan_id)"
+          [disabled]="isSelectingPlan"
+        >
+          Confirmar
+        </button>
+        <button class="btn btn-secondary" (click)="cancelSelectPlan()" [disabled]="isSelectingPlan">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading && plans.length === 0" class="no-plans">
+    No hay planes disponibles en este momento.
+  </div>
+</div>

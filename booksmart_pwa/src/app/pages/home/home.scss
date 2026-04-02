@@ -4,6 +4,12 @@
 }
 
 .home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+
   h1 {
     color: var(--color-text-strong);
     font-size: 1.8rem;
@@ -54,6 +60,13 @@
   padding: 1rem;
   display: grid;
   gap: 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 12px var(--color-primary-soft);
+  }
 }
 
 .card-header {
@@ -99,6 +112,12 @@
   font-size: 0.9rem;
 }
 
+.card-cta {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
 .quick-actions {
   display: flex;
   flex-wrap: wrap;
@@ -117,12 +136,158 @@
 }
 
 .btn-primary {
+  border: none;
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-strong) 100%);
   color: var(--color-surface);
+  cursor: pointer;
 }
 
 .btn-secondary {
+  cursor: pointer;
   border: 1px solid var(--color-border);
   color: var(--color-secondary);
   background: var(--color-surface);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--color-backdrop);
+  z-index: 100;
+}
+
+.modal {
+  position: fixed;
+  z-index: 101;
+  inset: 0;
+  margin: auto;
+  width: min(92vw, 34rem);
+  height: fit-content;
+  max-height: 88vh;
+  overflow: auto;
+  border-radius: 1rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  padding: 1rem;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.8rem;
+
+  h2 {
+    color: var(--color-text-strong);
+    font-size: 1.2rem;
+  }
+}
+
+.icon-btn {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  border-radius: 0.5rem;
+  width: 2rem;
+  height: 2rem;
+  cursor: pointer;
+}
+
+.modal-form {
+  display: grid;
+  gap: 0.8rem;
+
+  label {
+    display: grid;
+    gap: 0.35rem;
+    color: var(--color-text-strong);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+}
+
+.form-input {
+  border: 1px solid var(--color-border);
+  border-radius: 0.6rem;
+  padding: 0.7rem;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+}
+
+.map-section {
+  border: 1px solid var(--color-border);
+  border-radius: 0.8rem;
+  padding: 0.75rem;
+  background: var(--color-surface-muted);
+  display: grid;
+  gap: 0.6rem;
+}
+
+.map-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.map-coordinates {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.map-embed {
+  width: 100%;
+  min-height: 220px;
+  border: 1px solid var(--color-border);
+  border-radius: 0.6rem;
+  overflow: hidden;
+}
+
+.map-link {
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+:host ::ng-deep .business-map-pin-wrapper {
+  background: transparent;
+  border: none;
+}
+
+:host ::ng-deep .business-map-pin {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: inline-block;
+  background: var(--color-primary);
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+}
+
+:host ::ng-deep .leaflet-control-zoom a {
+  color: var(--color-text-strong);
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+:host ::ng-deep .leaflet-control-zoom a:hover {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-strong);
+}
+
+:host ::ng-deep .leaflet-container a.leaflet-control-attribution {
+  color: var(--color-text-muted);
 }

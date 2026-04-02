@@ -1,7 +1,7 @@
 <div class="app-container">
-  <app-navbar></app-navbar>
+  <app-navbar *ngIf="showNavbar"></app-navbar>
 
-  <main class="content">
+  <main class="content" [class.content--no-navbar]="!showNavbar">
     <div class="container-limit">
       <router-outlet></router-outlet>
     </div>

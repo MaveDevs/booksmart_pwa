@@ -20,6 +20,18 @@ export interface Agenda {
   hora_fin: string;
 }
 
+export interface AgendaCreate {
+  establecimiento_id: number;
+  dia_semana: DayOfWeek;
+  hora_inicio: string;
+  hora_fin: string;
+}
+
+export interface AgendaUpdate {
+  hora_inicio?: string;
+  hora_fin?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -31,5 +43,17 @@ export class Agendas {
   getByEstablishment(establishmentId: number): Observable<Agenda[]> {
     const params = new HttpParams().set('establecimiento_id', establishmentId.toString());
     return this.api.get<Agenda[]>(this.collectionPath, params);
+  }
+
+  create(data: AgendaCreate): Observable<Agenda> {
+    return this.api.post<Agenda>(this.collectionPath, data);
+  }
+
+  update(agendaId: number, data: AgendaUpdate): Observable<Agenda> {
+    return this.api.patch<Agenda>(`${this.collectionPath}${agendaId}`, data);
+  }
+
+  delete(agendaId: number): Observable<any> {
+    return this.api.delete(`${this.collectionPath}${agendaId}`);
   }
 }

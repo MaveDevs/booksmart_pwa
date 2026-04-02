@@ -12,28 +12,20 @@
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: true }"
         class="nav-item">
-        Inicio
+        Mis Negocios
       </a>
       <a
-        routerLink="/app/services"
+        routerLink="/app/notifications"
         routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="nav-item">
-        Servicios
+        class="nav-item nav-badge-link">
+        <span>Notificaciones</span>
+        <span class="nav-badge" *ngIf="unreadNotificationsCount > 0">{{ unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount }}</span>
       </a>
       <a
-        routerLink="/app/agendas"
+        routerLink="/app/subscriptions"
         routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
         class="nav-item">
-        Agendas
-      </a>
-      <a
-        routerLink="/app/profile"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="nav-item">
-        Perfil
+        Suscripciones
       </a>
       <button
         class="theme-btn"

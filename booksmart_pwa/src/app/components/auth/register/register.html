@@ -1,8 +1,8 @@
 <div class="auth-container">
   <div class="auth-card">
     <h1>Booksmart</h1>
-    <h2>Crear Cuenta de Negocio</h2>
-    <p class="auth-subtitle">Registra tu cuenta para gestionar tu establecimiento</p>
+    <h2>Crear Cuenta</h2>
+    <p class="auth-subtitle">Regístrate en Booksmart</p>
     
     <app-alert 
       [message]="errorMessage" 
@@ -80,6 +80,18 @@
           [disabled]="isLoading"
           required
         >
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            [(ngModel)]="isOwner"
+            name="isOwner"
+          >
+          Soy dueño de negocio
+        </label>
+        <p class="auth-hint" *ngIf="!isOwner">Podrás reservar citas en los negocios disponibles.</p>
       </div>
 
       <button type="submit" class="btn-primary" [disabled]="isLoading">

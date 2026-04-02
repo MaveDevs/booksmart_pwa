@@ -1,0 +1,38 @@
+<div class="subscriptions-page">
+  <header class="page-header">
+    <h1>Suscripciones</h1>
+    <p>Administra el plan de cada negocio.</p>
+  </header>
+
+  <app-alert [message]="errorMessage" [type]="'error'" [show]="!!errorMessage"></app-alert>
+
+  <section *ngIf="!isLoading && !!errorMessage && establishments.length === 0" class="empty-state">
+    <h2>No pudimos cargar tus establecimientos</h2>
+    <p>Intenta nuevamente en unos segundos.</p>
+    <button type="button" class="btn-secondary" (click)="retryLoad()">Reintentar</button>
+  </section>
+
+  <section *ngIf="!isLoading && !errorMessage && establishments.length === 0" class="empty-state">
+    <h2>Aún no tienes un negocio configurado</h2>
+    <p>Configura primero un negocio para gestionar su suscripción.</p>
+    <a routerLink="/setup/establishment" class="btn-primary">Configurar mi negocio</a>
+  </section>
+
+  <section *ngIf="establishments.length > 0" class="establishments-grid">
+    <article class="establishment-card" *ngFor="let establishment of establishments; trackBy: trackByEstablishmentId">
+      <div class="card-header">
+        <h2>{{ establishment.nombre }}</h2>
+        <span class="badge" [class.inactive]="!establishment.activo">
+          {{ establishment.activo ? 'Activo' : 'Inactivo' }}
+        </span>
+      </div>
+
+      <p class="description" *ngIf="establishment.descripcion">{{ establishment.descripcion }}</p>
+      <p class="description muted" *ngIf="!establishment.descripcion">Sin descripción</p>
+
+      <button type="button" class="btn-primary" (click)="goToSubscription(establishment.establecimiento_id)">
+        Gestionar suscripción
+      </button>
+    </article>
+  </section>
+</div>

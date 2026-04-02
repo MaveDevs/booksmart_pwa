@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { MainLayout } from './components/layout/main-layout/main-layout';
 import { authGuard } from './guards/auth.guard';
-import { businessSetupGuard } from './guards/business-setup.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -31,16 +30,28 @@ export const routes: Routes = [
     ]
   },
 
-  // Main app: requires auth + at least one establishment
+  // Main app: requires auth
   {
     path: 'app',
     component: MainLayout,
-    canActivate: [authGuard, businessSetupGuard],
+    canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
       {
         path: 'home',
         loadComponent: () => import('./pages/home/home').then(m => m.Home)
+      },
+      {
+        path: 'subscriptions',
+        loadComponent: () => import('./pages/subscriptions/subscriptions').then(m => m.SubscriptionsPage)
+      },
+      {
+        path: 'notifications',
+        loadComponent: () => import('./pages/notifications/notifications').then(m => m.NotificationsPage)
+      },
+      {
+        path: 'negocio/:id',
+        loadComponent: () => import('./pages/negocio/negocio').then(m => m.Negocio)
       },
       {
         path: 'services',

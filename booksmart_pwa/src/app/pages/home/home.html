@@ -1,7 +1,10 @@
 <div class="home-container">
   <header class="home-header">
-    <h1>Mis Negocios</h1>
-    <p>Administra tus establecimientos, servicios y perfil público.</p>
+    <div>
+      <h1>Bienvenido{{ userName ? ', ' + userName : '' }}</h1>
+      <p>Gestiona la información de tu negocio desde aquí.</p>
+    </div>
+    <button type="button" class="btn-primary" (click)="openCreateModal()">+ Nuevo negocio</button>
   </header>
 
   <app-alert
@@ -17,15 +20,16 @@
   </section>
 
   <section *ngIf="!isLoading && !errorMessage && establishments.length === 0" class="empty-state">
-    <h2>Aún no tienes establecimientos</h2>
-    <p>Completa la configuración inicial para poder gestionar tus servicios.</p>
-    <a routerLink="/setup/establishment" class="btn-primary">Ir a configuración</a>
+    <h2>Aún no tienes un negocio configurado</h2>
+    <p>Cuando estés listo, completa la configuración para comenzar a recibir citas.</p>
+    <button type="button" class="btn-primary" (click)="openCreateModal()">Crear mi primer negocio</button>
   </section>
 
   <section *ngIf="establishments.length > 0" class="establishments-grid">
     <article
       class="establishment-card"
-      *ngFor="let establishment of establishments; trackBy: trackByEstablishmentId">
+      *ngFor="let establishment of establishments; trackBy: trackByEstablishmentId"
+      (click)="goToNegocio(establishment.establecimiento_id)">
       <div class="card-header">
         <h2>{{ establishment.nombre }}</h2>
         <span class="badge" [class.inactive]="!establishment.activo">
@@ -40,11 +44,71 @@
         <li><strong>Dirección:</strong> {{ establishment.direccion || 'Sin dirección' }}</li>
         <li><strong>Teléfono:</strong> {{ establishment.telefono || 'Sin teléfono' }}</li>
       </ul>
+
+      <span class="card-cta">Ver negocio →</span>
     </article>
   </section>
 
-  <section *ngIf="establishments.length > 0" class="quick-actions">
-    <a routerLink="/app/services" class="btn-primary">Gestionar servicios</a>
-    <a routerLink="/app/profile" class="btn-secondary">Editar perfil del negocio</a>
-  </section>
+  <div class="modal-backdrop" *ngIf="showCreateModal" (click)="closeCreateModal()"></div>
+  <div class="modal" *ngIf="showCreateModal" role="dialog" aria-modal="true" aria-labelledby="create-business-title">
+    <div class="modal-header">
+      <h2 id="create-business-title">Crear nuevo negocio</h2>
+      <button type="button" class="icon-btn" (click)="closeCreateModal()" [disabled]="isCreatingEstablishment">✕</button>
+    </div>
+
+    <app-alert [message]="createErrorMessage" [type]="'error'" [show]="!!createErrorMessage"></app-alert>
+
+    <form class="modal-form" (ngSubmit)="createEstablishment()">
+      <label>
+        Nombre del negocio *
+        <input class="form-input" [(ngModel)]="establishmentForm.nombre" name="nombre" required>
+      </label>
+
+      <label>
+        Descripción
+        <textarea class="form-input" [(ngModel)]="establishmentForm.descripcion" name="descripcion" rows="3"></textarea>
+      </label>
+
+      <label>
+        Dirección
+        <input class="form-input" [(ngModel)]="establishmentForm.direccion" name="direccion">
+      </label>
+
+      <section class="map-section">
+        <div class="map-actions">
+          <button type="button" class="btn-secondary" (click)="locateAddressOnMap()" [disabled]="isResolvingAddress || isLocatingUser">
+            {{ isResolvingAddress ? 'Buscando...' : 'Buscar dirección en mapa' }}
+          </button>
+          <button type="button" class="btn-secondary" (click)="useCurrentLocation()" [disabled]="isLocatingUser || isResolvingAddress">
+            {{ isLocatingUser ? 'Ubicando...' : 'Usar mi ubicación' }}
+          </button>
+        </div>
+
+        <p class="map-coordinates">
+          Lat: {{ establishmentForm.latitud | number: '1.4-6' }} · Lng: {{ establishmentForm.longitud | number: '1.4-6' }}
+        </p>
+
+        <div id="create-business-map" class="map-embed" aria-label="Mapa para seleccionar ubicación"></div>
+
+        <a class="map-link" [href]="mapExternalUrl" target="_blank" rel="noopener noreferrer">
+          Abrir mapa en una pestaña nueva
+        </a>
+      </section>
+
+      <label>
+        Teléfono
+        <input class="form-input" [(ngModel)]="establishmentForm.telefono" name="telefono" type="tel">
+      </label>
+
+      <div class="modal-actions">
+        <button type="submit" class="btn-primary" [disabled]="isCreatingEstablishment">
+          {{ isCreatingEstablishment ? 'Creando...' : 'Crear negocio' }}
+        </button>
+        <button type="button" class="btn-secondary" (click)="closeCreateModal()" [disabled]="isCreatingEstablishment">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+
 </div>
