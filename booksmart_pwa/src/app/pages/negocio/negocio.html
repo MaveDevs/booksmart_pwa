@@ -382,12 +382,15 @@
             <span class="hint">{{ filteredChatAppointments.length }} citas</span>
           </div>
 
-          <!-- Filtros de estado para el chat -->
+          <!-- Filtros de fecha y estado para el chat -->
           <div class="chat-filters">
-            <button class="filter-chip" [class.active]="selectedChatStatus === 'ALL'" (click)="setChatStatusFilter('ALL')">Todas</button>
-            <button class="filter-chip" [class.active]="selectedChatStatus === 'PENDIENTE'" (click)="setChatStatusFilter('PENDIENTE')">Pendientes</button>
-            <button class="filter-chip" [class.active]="selectedChatStatus === 'CONFIRMADA'" (click)="setChatStatusFilter('CONFIRMADA')">Confirmadas</button>
-            <button class="filter-chip" [class.active]="selectedChatStatus === 'COMPLETADA'" (click)="setChatStatusFilter('COMPLETADA')">Exitosas</button>
+            <button class="filter-chip chip-date" [class.active]="selectedChatDate === todayStr" (click)="setChatDateFilter(todayStr)">Hoy</button>
+            <button class="filter-chip chip-date" [class.active]="selectedChatDate === 'ALL'" (click)="setChatDateFilter('ALL')">Histórico</button>
+            <div class="filter-divider"></div>
+            <button class="filter-chip chip-all" [class.active]="selectedChatStatus === 'ALL'" (click)="setChatStatusFilter('ALL')">Todo</button>
+            <button class="filter-chip chip-pendiente" [class.active]="selectedChatStatus === 'PENDIENTE'" (click)="setChatStatusFilter('PENDIENTE')">Pendientes</button>
+            <button class="filter-chip chip-confirmada" [class.active]="selectedChatStatus === 'CONFIRMADA'" (click)="setChatStatusFilter('CONFIRMADA')">Confirmadas</button>
+            <button class="filter-chip chip-completada" [class.active]="selectedChatStatus === 'COMPLETADA'" (click)="setChatStatusFilter('COMPLETADA')">Exitosas</button>
           </div>
 
           <div class="messages-thread-list" *ngIf="filteredChatAppointments.length > 0">

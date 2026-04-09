@@ -133,6 +133,11 @@ export class Negocio implements OnInit, OnDestroy {
   isSendingMessage = false;
   messageDraft = '';
   selectedChatStatus: AppointmentStatus | 'ALL' = 'ALL';
+  selectedChatDate: string | 'ALL' = 'ALL';
+  
+  get todayStr(): string {
+    return this.toDateString(new Date());
+  }
 
   // --- Reseñas tab ---
   ratings: Rating[] = [];
@@ -183,36 +188,68 @@ export class Negocio implements OnInit, OnDestroy {
   get isOwner(): boolean {
     return this.authService.isOwner();
   }
-
   ngOnInit(): void {
     this.realtimeService.connect(this.authService.getToken());
     this.realtimeService.events$
       .pipe(takeUntil(this.destroy$))
       .subscribe((event) => this.handleRealtimeEvent(event));
 
-    const routeId = this.route.snapshot.paramMap.get('id');
-    if (routeId && !isNaN(+routeId)) {
-      this.activeEstablishmentService.setEstablishmentId(+routeId);
-      this.router.navigate(['/app/negocio'], {
-        queryParams: this.route.snapshot.queryParams,
-        replaceUrl: true,
-      });
-      return;
-    }
+    // Listen to route changes to handle business switching correctly
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      const routeId = params.get('id');
+      if (routeId && !isNaN(+routeId)) {
+        console.log(`[Negocio] Route ID detected: ${routeId}. Updating active establishment.`);
+        this.activeEstablishmentService.setEstablishmentId(+routeId);
+        this.router.navigate(['/app/negocio'], {
+          queryParams: this.route.snapshot.queryParams,
+          replaceUrl: true,
+        });
+        return;
+      }
 
-    const storedId = this.activeEstablishmentService.getEstablishmentId();
-    if (!storedId) {
-      this.router.navigate(['/app/home']);
-      return;
-    }
+      const storedId = this.activeEstablishmentService.getEstablishmentId();
+      console.log(`[Negocio] Active Establishment ID from storage: ${storedId}`);
+      
+      if (!storedId) {
+        console.warn('[Negocio] No establishment ID found in storage. Redirecting home.');
+        this.router.navigate(['/app/home']);
+        return;
+      }
+
+      // If the ID changed or it's the first load, reset state and load new data
+      if (!this.establishmentId || this.establishmentId !== storedId) {
+        console.log(`[Negocio] Business switch detected: ${this.establishmentId} -> ${storedId}`);
+        this.resetState();
+        this.establishmentId = storedId;
+        this.selectedChatDate = this.todayStr;
+        this.loadEstablishment();
+      }
+    });
 
     const requestedTab = this.route.snapshot.queryParamMap.get('tab');
     if (requestedTab === 'suscripcion') {
       this.activeTab = 'suscripcion';
     }
+  }
 
-    this.establishmentId = storedId;
-    this.loadEstablishment();
+  private resetState(): void {
+    console.log('[Negocio] Pre-emptively resetting component state...');
+    this.appointments = [];
+    this.messages = [];
+    this.selectedChatAppointment = null;
+    this.tabsLoaded.clear();
+    this.establishment = null;
+    this.services = [];
+    this.workers = [];
+    this.ratings = [];
+    this.subscription = null;
+    this.selectedAppointment = null;
+    this.selectedDayAppointments = [];
+    this.messageDraft = '';
+    this.selectedChatStatus = 'ALL';
+    this.isLoadingAppointments = false;
+    this.isLoadingMessages = false;
+    this.isLoadingEstablishment = false;
   }
 
   ngOnDestroy(): void {
@@ -259,11 +296,13 @@ export class Negocio implements OnInit, OnDestroy {
   // ─── ESTABLISHMENT / GENERAL ─────────────────────────────────────────────
 
   private loadEstablishment(): void {
+    console.log(`[Negocio] Loading establishment details for ID: ${this.establishmentId}`);
     this.isLoadingEstablishment = true;
     this.establishmentsService.getEstablishment(this.establishmentId).pipe(
       finalize(() => { this.isLoadingEstablishment = false; this.cdr.markForCheck(); }),
     ).subscribe({
       next: (e) => {
+        console.log(`[Negocio] Successfully loaded establishment: ${e.nombre} (ID: ${e.establecimiento_id})`);
         this.establishment = e;
         this.establishmentForm = {
           nombre: e.nombre,
@@ -601,6 +640,7 @@ export class Negocio implements OnInit, OnDestroy {
   // ─── SERVICES ────────────────────────────────────────────────────────────
 
   private loadServices(): void {
+    console.log(`[Negocio] Loading services for establishment: ${this.establishmentId}`);
     this.isLoadingServices = true;
     this.businessServicesApi.getByEstablishment(this.establishmentId).pipe(
       finalize(() => { this.isLoadingServices = false; this.cdr.markForCheck(); }),
@@ -711,6 +751,7 @@ export class Negocio implements OnInit, OnDestroy {
   // ─── AGENDAS / HORARIOS ──────────────────────────────────────────────────
 
   private loadAgendas(): void {
+    console.log(`[Negocio] Loading agendas for establishment: ${this.establishmentId}`);
     this.isLoadingAgendas = true;
     this.agendasService.getByEstablishment(this.establishmentId).pipe(
       finalize(() => { this.isLoadingAgendas = false; this.cdr.markForCheck(); }),
@@ -890,6 +931,8 @@ export class Negocio implements OnInit, OnDestroy {
   }
 
   private loadAppointments(): void {
+    console.log(`[Negocio] Loading appointments for establishment: ${this.establishmentId}`);
+    this.appointments = []; // Pre-clear to avoid showing old data if request is slow
     this.isLoadingAppointments = true;
     
     // Si es trabajador, el servicio automáticamente le traerá sus citas (filtramos en backend)
@@ -897,9 +940,15 @@ export class Negocio implements OnInit, OnDestroy {
     const workerFilter = this.isWorker ? null : this.selectedWorkerId;
     
     this.appointmentsService.getByEstablishment(this.establishmentId, workerFilter).pipe(
-      finalize(() => { this.isLoadingAppointments = false; this.cdr.markForCheck(); }),
+      finalize(() => { 
+        this.isLoadingAppointments = false; 
+        this.cdr.markForCheck(); 
+      }),
     ).subscribe({
       next: (appts) => {
+        console.log(`[Negocio] Received ${appts.length} appointments for establishment ${this.establishmentId}`);
+        // Filter out any appointments that might not belong to this establishment if they had the ID
+        // Since they don't have it, we trust the backend, but we've at least cleared the previous ones.
         this.appointments = this.sortAppointments(appts);
         
         if (this.selectedDay) {
@@ -914,23 +963,25 @@ export class Negocio implements OnInit, OnDestroy {
   }
 
   private loadMessagesTab(): void {
-    if (!this.appointments.length) {
-      this.loadAppointments();
-      return;
-    }
-
-    this.ensureChatSelection();
+    // Always clear and reload appointments to ensure they belong to THIS establishment
+    this.loadAppointments();
   }
 
   get filteredChatAppointments(): Appointment[] {
-    if (this.selectedChatStatus === 'ALL') {
-      return this.appointments;
-    }
-    return this.appointments.filter(a => a.estado === this.selectedChatStatus);
+    return this.appointments.filter(a => {
+      const matchesStatus = this.selectedChatStatus === 'ALL' || a.estado === this.selectedChatStatus;
+      const matchesDate = this.selectedChatDate === 'ALL' || a.fecha === this.selectedChatDate;
+      return matchesStatus && matchesDate;
+    });
   }
 
   setChatStatusFilter(status: AppointmentStatus | 'ALL'): void {
     this.selectedChatStatus = status;
+    this.cdr.markForCheck();
+  }
+
+  setChatDateFilter(date: string | 'ALL'): void {
+    this.selectedChatDate = date;
     this.cdr.markForCheck();
   }
 
@@ -1220,7 +1271,9 @@ export class Negocio implements OnInit, OnDestroy {
   // ─── RATINGS ─────────────────────────────────────────────────────────────
 
   private loadRatings(): void {
+    console.log(`[Negocio] Loading ratings for establishment: ${this.establishmentId}`);
     this.isLoadingRatings = true;
+    this.ratings = []; // Clear previous
     this.ratingsService.getByEstablishment(this.establishmentId).pipe(
       finalize(() => { this.isLoadingRatings = false; this.cdr.markForCheck(); }),
     ).subscribe({

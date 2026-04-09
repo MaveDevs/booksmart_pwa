@@ -22,7 +22,7 @@ export class Ratings {
   constructor(private api: Api) {}
 
   getByEstablishment(establishmentId: number): Observable<Rating[]> {
-    const params = new HttpParams().set('establishment_id', establishmentId.toString());
+    const params = new HttpParams().set('establecimiento_id', establishmentId.toString());
     return this.api.get<Rating[]>(this.basePath, params);
   }
 }
