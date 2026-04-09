@@ -29,6 +29,10 @@ export class Navbar implements OnInit, OnDestroy {
     this.isDarkTheme = this.themeService.isDarkTheme;
   }
 
+  get isOwner(): boolean {
+    return this.authService.isOwner();
+  }
+
   ngOnInit(): void {
     this.realtimeService.connect(this.authService.getToken());
     this.notificationsService.refreshUnreadCount().subscribe();

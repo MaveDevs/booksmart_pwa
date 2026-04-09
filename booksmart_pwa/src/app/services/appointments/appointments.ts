@@ -28,8 +28,11 @@ export class Appointments {
     return this.api.get<Appointment[]>(`${this.basePath}me`);
   }
 
-  getByEstablishment(establishmentId: number): Observable<Appointment[]> {
-    const params = new HttpParams().set('establishment_id', establishmentId.toString());
+  getByEstablishment(establishmentId: number, trabajadorId?: number | null): Observable<Appointment[]> {
+    let params = new HttpParams().set('establishment_id', establishmentId.toString());
+    if (trabajadorId) {
+      params = params.set('trabajador_id', trabajadorId.toString());
+    }
     return this.api.get<Appointment[]>(this.basePath, params);
   }
 

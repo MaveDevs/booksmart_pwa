@@ -15,12 +15,21 @@
 
     <!-- Header -->
     <header class="negocio-header">
-      <button class="btn-back" type="button" (click)="goBack()">← Mis Negocios</button>
+      <div class="header-top">
+        <button class="btn-back" type="button" (click)="goBack()">
+          <i class="bi bi-arrow-left"></i> Mis Negocios
+        </button>
+      </div>
       <div class="negocio-title-row">
-        <h1>{{ establishment.nombre }}</h1>
-        <span class="badge" [class.inactive]="!establishment.activo">
-          {{ establishment.activo ? 'Activo' : 'Inactivo' }}
-        </span>
+        <div class="title-with-status">
+          <h1>{{ establishment.nombre }}</h1>
+          <span class="status-indicator" [class.active]="establishment.activo"></span>
+        </div>
+        <div class="header-actions">
+          <span class="badge" [class.inactive]="!establishment.activo">
+            {{ establishment.activo ? 'Establecimiento Activo' : 'Establecimiento Inactivo' }}
+          </span>
+        </div>
       </div>
     </header>
 
@@ -31,24 +40,43 @@
     <div class="negocio-workspace">
 
       <aside class="negocio-sidebar">
-        <section class="sidebar-section">
-          <p class="sidebar-title">Operativas</p>
-          <nav class="sidebar-nav">
-            <button class="sidebar-btn" [class.active]="activeTab === 'calendario'" type="button" (click)="setTab('calendario')">Calendario</button>
-            <button class="sidebar-btn" [class.active]="activeTab === 'mensajes'" type="button" (click)="setTab('mensajes')">Mensajes</button>
-            <button class="sidebar-btn" [class.active]="activeTab === 'horarios'" type="button" (click)="setTab('horarios')">Horarios</button>
-            <button class="sidebar-btn" [class.active]="activeTab === 'servicios'" type="button" (click)="setTab('servicios')">Servicios</button>
-            <button class="sidebar-btn" [class.active]="activeTab === 'resenas'" type="button" (click)="setTab('resenas')">Reseñas</button>
-          </nav>
-        </section>
+        <div class="sidebar-inner">
+          <section class="sidebar-section">
+            <p class="sidebar-title">OPERATIVAS</p>
+            <nav class="sidebar-nav">
+              <button class="sidebar-btn" [class.active]="activeTab === 'calendario'" (click)="setTab('calendario')">
+                <i class="bi bi-calendar3 btn-icon"></i> Calendario
+              </button>
+              <button class="sidebar-btn" [class.active]="activeTab === 'mensajes'" (click)="setTab('mensajes')">
+                <i class="bi bi-chat-dots btn-icon"></i> Mensajes
+              </button>
+              <button class="sidebar-btn" *ngIf="isOwner" [class.active]="activeTab === 'horarios'" (click)="setTab('horarios')">
+                <i class="bi bi-clock btn-icon"></i> Horarios
+              </button>
+              <button class="sidebar-btn" *ngIf="isOwner" [class.active]="activeTab === 'servicios'" (click)="setTab('servicios')">
+                <i class="bi bi-card-checklist btn-icon"></i> Servicios
+              </button>
+              <button class="sidebar-btn" [class.active]="activeTab === 'resenas'" (click)="setTab('resenas')">
+                <i class="bi bi-star btn-icon"></i> Reseñas
+              </button>
+            </nav>
+          </section>
 
-        <section class="sidebar-section">
-          <p class="sidebar-title">Administrativas</p>
-          <nav class="sidebar-nav">
-            <button class="sidebar-btn" [class.active]="activeTab === 'general'" type="button" (click)="setTab('general')">Perfil del negocio</button>
-            <button class="sidebar-btn" [class.active]="activeTab === 'suscripcion'" type="button" (click)="setTab('suscripcion')">Suscripción</button>
-          </nav>
-        </section>
+          <section class="sidebar-section" *ngIf="isOwner">
+            <p class="sidebar-title">ADMINISTRACIÓN</p>
+            <nav class="sidebar-nav">
+              <button class="sidebar-btn" [class.active]="activeTab === 'general'" (click)="setTab('general')">
+                <i class="bi bi-shop btn-icon"></i> Perfil del negocio
+              </button>
+              <button class="sidebar-btn" [class.active]="activeTab === 'suscripcion'" (click)="setTab('suscripcion')">
+                <i class="bi bi-gem btn-icon"></i> Suscripción
+              </button>
+              <button class="sidebar-btn" [class.active]="activeTab === 'equipo'" (click)="setTab('equipo')">
+                <i class="bi bi-people btn-icon"></i> Gestión de Equipo
+              </button>
+            </nav>
+          </section>
+        </div>
       </aside>
 
       <div class="negocio-main-content">
@@ -98,7 +126,7 @@
             <div id="business-profile-map" class="map-embed" aria-label="Mapa para seleccionar ubicacion"></div>
 
             <a class="map-link" [href]="mapExternalUrl" target="_blank" rel="noopener noreferrer">
-              Abrir mapa en una pestana nueva
+              <i class="bi bi-box-arrow-up-right"></i> Abrir mapa en una pestaña nueva
             </a>
           </section>
 
@@ -258,6 +286,32 @@
 
     <!-- ═══════════════════════ TAB: CALENDARIO ═══════════════════════ -->
     <div class="tab-content" *ngIf="activeTab === 'calendario'">
+      
+      <!-- Worker Selector (Solo para dueños/admin) -->
+      <section class="card worker-selector-card" *ngIf="isOwner">
+        <div class="selector-head">
+          <i class="bi bi-people-fill"></i>
+          <h3>Equipo de Trabajo</h3>
+        </div>
+        <div class="worker-chips">
+          <button 
+            type="button" 
+            class="chip" 
+            [class.active]="!selectedWorkerId" 
+            (click)="selectWorker(null)">
+            Todos
+          </button>
+          <button 
+            type="button" 
+            class="chip" 
+            *ngFor="let worker of workers" 
+            [class.active]="selectedWorkerId === worker.trabajador_id"
+            (click)="selectWorker(worker.trabajador_id)">
+            {{ worker.nombre }}
+          </button>
+        </div>
+      </section>
+
       <div class="calendario-layout">
 
         <!-- Calendar grid -->
@@ -428,6 +482,116 @@
       <section class="card">
         <app-current-subscription [establishmentId]="establishmentId"></app-current-subscription>
         <app-plans-list [establishmentId]="establishmentId" [currentSubscriptionPlanId]="subscription?.plan_id"></app-plans-list>
+      </section>
+    </div>
+
+    <!-- ═══════════════════════ TAB: EQUIPO ═══════════════════════ -->
+    <div class="tab-content" *ngIf="activeTab === 'equipo'">
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <h2>Equipo de Trabajo</h2>
+            <p class="hint">Gestiona a los profesionales que brindan servicios en tu negocio.</p>
+          </div>
+          <button class="btn-primary" type="button" (click)="showWorkerForm = !showWorkerForm">
+            {{ showWorkerForm ? 'Cancelar' : '+ Nuevo Trabajador' }}
+          </button>
+        </div>
+
+        <!-- Form: New Worker -->
+        <div class="form-card" *ngIf="showWorkerForm">
+          <h3>Registrar Profesional</h3>
+          <div class="form-grid">
+            <label>
+              Nombre *
+              <input class="form-input" [(ngModel)]="newWorker.nombre" placeholder="Ej. Juan">
+            </label>
+            <label>
+              Apellido *
+              <input class="form-input" [(ngModel)]="newWorker.apellido" placeholder="Ej. Pérez">
+            </label>
+            <label>
+              Especialidad
+              <input class="form-input" [(ngModel)]="newWorker.especialidad" placeholder="Ej. Barbero Senior">
+            </label>
+            <label>
+              Correo Electrónico
+              <input class="form-input" type="email" [(ngModel)]="newWorker.email" placeholder="Para vincular su acceso">
+            </label>
+            <label>
+              Contraseña
+              <input class="form-input" type="password" [(ngModel)]="newWorker.contrasena" placeholder="Mín. 6 caracteres">
+            </label>
+          </div>
+          <button class="btn-primary" type="button" [disabled]="isSubmittingWorker" (click)="createWorker()">
+            {{ isSubmittingWorker ? 'Registrando...' : 'Registrar Trabajador' }}
+          </button>
+        </div>
+
+        <p *ngIf="isLoadingWorkers">Cargando equipo...</p>
+        <p *ngIf="!isLoadingWorkers && workers.length === 0">No hay trabajadores registrados aún.</p>
+
+        <div class="worker-list" *ngIf="workers.length > 0">
+          <article class="worker-item-card" *ngFor="let worker of workers">
+            <!-- Edit Mode -->
+            <div class="edit-worker-workspace" *ngIf="editingWorkerId === worker.trabajador_id">
+              <div class="edit-header">
+                <i class="bi bi-pencil-fill"></i>
+                <span>Editando Profesional</span>
+              </div>
+              
+              <div class="edit-form-grid">
+                <div class="input-group">
+                  <label>Nombre</label>
+                  <input class="form-input" [(ngModel)]="editWorker.nombre">
+                </div>
+                <div class="input-group">
+                  <label>Apellido</label>
+                  <input class="form-input" [(ngModel)]="editWorker.apellido">
+                </div>
+                <div class="input-group">
+                  <label>Especialidad</label>
+                  <input class="form-input" [(ngModel)]="editWorker.especialidad">
+                </div>
+                <div class="input-group">
+                  <label>Correo de Acceso</label>
+                  <input class="form-input" [(ngModel)]="editWorker.email">
+                </div>
+                <div class="input-group full-width">
+                  <label>Nueva Contraseña (opcional)</label>
+                  <input class="form-input" type="password" [(ngModel)]="editWorker.contrasena" placeholder="••••••••">
+                </div>
+              </div>
+
+              <div class="edit-footer">
+                <button class="btn-ghost" (click)="cancelEditWorker()">Cancelar</button>
+                <button class="btn-primary" (click)="saveEditWorker(worker.trabajador_id)">
+                  <i class="bi bi-check-lg"></i> Guardar Cambios
+                </button>
+              </div>
+            </div>
+
+            <!-- View Mode -->
+            <ng-container *ngIf="editingWorkerId !== worker.trabajador_id">
+              <div class="worker-avatar">
+                <span>{{ worker.nombre[0] }}{{ worker.apellido[0] }}</span>
+              </div>
+              <div class="worker-info">
+                <h4>{{ worker.nombre }} {{ worker.apellido }}</h4>
+                <span class="specialty" *ngIf="worker.especialidad">{{ worker.especialidad }}</span>
+                <p class="email" *ngIf="worker.email"><i class="bi bi-envelope"></i> {{ worker.email }}</p>
+              </div>
+              <div class="worker-actions">
+                <button class="btn-action-icon" (click)="startEditWorker(worker)" title="Editar">
+                  <i class="bi bi-pencil-square"></i>
+                </button>
+                <button class="btn-action-icon danger" (click)="deleteWorker(worker.trabajador_id)" title="Eliminar">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </div>
+            </ng-container>
+          </article>
+        </div>
       </section>
     </div>
 

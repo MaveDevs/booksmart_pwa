@@ -54,6 +54,10 @@ export class Home implements OnInit {
     private activeEstablishmentService: ActiveEstablishmentService
   ) {}
 
+  get isOwner(): boolean {
+    return this.authService.isOwner();
+  }
+
   ngOnInit(): void {
     const user = this.authService.getUser();
     if (user) {

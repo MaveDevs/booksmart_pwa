@@ -39,12 +39,13 @@ import { ChatMessage, ChatMessageCreate, MessagesService } from '../../services/
 import { Rating, Ratings } from '../../services/ratings/ratings';
 import { Subscription, SubscriptionsService } from '../../services/subscriptions/subscriptions';
 import { RealtimeService, RealtimeEvent } from '../../services/realtime/realtime';
+import { Workers, Worker } from '../../services/workers/workers';
 import { Alert } from '../../shared/alert/alert';
 import { ConfirmModal } from '../../shared/confirm-modal/confirm-modal';
 import { PlansList } from '../../components/plans-list/plans-list';
 import { CurrentSubscription } from '../../components/current-subscription/current-subscription';
 
-type TabId = 'general' | 'servicios' | 'horarios' | 'calendario' | 'mensajes' | 'resenas' | 'suscripcion';
+type TabId = 'general' | 'servicios' | 'horarios' | 'calendario' | 'mensajes' | 'resenas' | 'suscripcion' | 'equipo';
 type ProfileImageTarget = 'logo' | 'cover';
 
 @Component({
@@ -121,7 +122,7 @@ export class Negocio implements OnInit, OnDestroy {
   appointments: Appointment[] = [];
   isLoadingAppointments = false;
   calendarDate = new Date();
-  selectedDay: Date | null = null;
+  selectedDay: Date | null = new Date(); // Inicializado con hoy, pero permite null
   selectedDayAppointments: Appointment[] = [];
   showAppointmentModal = false;
   selectedAppointment: Appointment | null = null;
@@ -135,6 +136,17 @@ export class Negocio implements OnInit, OnDestroy {
   // --- Reseñas tab ---
   ratings: Rating[] = [];
   isLoadingRatings = false;
+
+  // --- Trabajadores ---
+  workers: Worker[] = [];
+  selectedWorkerId: number | null = null;
+  isLoadingWorkers = false;
+  showWorkerForm = false;
+  isSubmittingWorker = false;
+  newWorker = { nombre: '', apellido: '', especialidad: '', email: '', contrasena: '' };
+  
+  editingWorkerId: number | null = null;
+  editWorker = { nombre: '', apellido: '', especialidad: '', email: '', contrasena: '' };
 
   // --- Suscripción tab ---
   subscription: Subscription | null = null;
@@ -160,7 +172,16 @@ export class Negocio implements OnInit, OnDestroy {
     private ratingsService: Ratings,
     private subscriptionsService: SubscriptionsService,
     private realtimeService: RealtimeService,
+    private workersService: Workers,
   ) {}
+
+  get isWorker(): boolean {
+    return this.authService.isWorker();
+  }
+
+  get isOwner(): boolean {
+    return this.authService.isOwner();
+  }
 
   ngOnInit(): void {
     this.realtimeService.connect(this.authService.getToken());
@@ -228,6 +249,10 @@ export class Negocio implements OnInit, OnDestroy {
     else if (tab === 'mensajes') this.loadMessagesTab();
     else if (tab === 'resenas') this.loadRatings();
     else if (tab === 'suscripcion') this.loadSubscription();
+    else if (tab === 'equipo') this.loadWorkers();
+    
+    // Siempre cargamos trabajadores si estamos en calendario
+    if (tab === 'calendario') this.loadWorkers();
   }
 
   // ─── ESTABLISHMENT / GENERAL ─────────────────────────────────────────────
@@ -758,14 +783,124 @@ export class Negocio implements OnInit, OnDestroy {
   }
 
   // ─── APPOINTMENTS / CALENDARIO ───────────────────────────────────────────
+  
+  loadWorkers(): void {
+    this.isLoadingWorkers = true;
+    this.workersService.getByEstablishment(this.establishmentId).pipe(
+      finalize(() => { this.isLoadingWorkers = false; this.cdr.markForCheck(); })
+    ).subscribe({
+      next: (workers) => { this.workers = workers; },
+      error: () => { this.errorMessage = 'No se pudieron cargar los trabajadores.'; }
+    });
+  }
+
+  startEditWorker(worker: any): void {
+    this.editingWorkerId = worker.trabajador_id;
+    this.editWorker = {
+      nombre: worker.nombre,
+      apellido: worker.apellido,
+      especialidad: worker.especialidad || '',
+      email: worker.email || '',
+      contrasena: ''
+    };
+  }
+
+  cancelEditWorker(): void {
+    this.editingWorkerId = null;
+  }
+
+  saveEditWorker(workerId: number): void {
+    if (!this.editWorker.nombre.trim() || !this.editWorker.apellido.trim()) {
+      this.errorMessage = 'Nombre y apellido son obligatorios.';
+      return;
+    }
+    this.isSubmittingWorker = true;
+    this.clearMessages();
+    this.workersService.update(workerId, {
+      nombre: this.editWorker.nombre.trim(),
+      apellido: this.editWorker.apellido.trim(),
+      especialidad: this.editWorker.especialidad.trim() || undefined,
+      email: this.editWorker.email.trim() || undefined,
+      contrasena: this.editWorker.contrasena.trim() || undefined
+    }).subscribe({
+      next: () => {
+        this.successMessage = 'Trabajador actualizado.';
+        this.editingWorkerId = null;
+        this.isSubmittingWorker = false;
+        this.loadWorkers();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.detail || 'No se pudo actualizar al trabajador.';
+        this.isSubmittingWorker = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  deleteWorker(workerId: number): void {
+    if (!confirm('¿Seguro que deseas dar de baja a este trabajador?')) return;
+    
+    this.clearMessages();
+    this.workersService.delete(workerId).subscribe({
+      next: () => {
+        this.successMessage = 'Trabajador eliminado.';
+        this.loadWorkers();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.detail || 'No se pudo eliminar al trabajador.';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  createWorker(): void {
+    if (!this.newWorker.nombre.trim() || !this.newWorker.apellido.trim()) {
+      this.errorMessage = 'Nombre y apellido son obligatorios.';
+      return;
+    }
+    this.isSubmittingWorker = true;
+    this.clearMessages();
+    this.workersService.create({
+      establecimiento_id: this.establishmentId,
+      ...this.newWorker,
+      activo: true
+    }).subscribe({
+      next: () => {
+        this.successMessage = 'Trabajador registrado correctamente.';
+        this.newWorker = { nombre: '', apellido: '', especialidad: '', email: '', contrasena: '' };
+        this.showWorkerForm = false;
+        this.isSubmittingWorker = false;
+        this.loadWorkers();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.detail || 'No se pudo registrar al trabajador.';
+        this.isSubmittingWorker = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  selectWorker(workerId: number | null): void {
+    this.selectedWorkerId = workerId;
+    this.loadAppointments();
+  }
 
   private loadAppointments(): void {
     this.isLoadingAppointments = true;
-    this.appointmentsService.getByEstablishment(this.establishmentId).pipe(
+    
+    // Si es trabajador, el servicio automáticamente le traerá sus citas (filtramos en backend)
+    // Pero si es dueño y no hay worker seleccionado, traemos todas.
+    const workerFilter = this.isWorker ? null : this.selectedWorkerId;
+    
+    this.appointmentsService.getByEstablishment(this.establishmentId, workerFilter).pipe(
       finalize(() => { this.isLoadingAppointments = false; this.cdr.markForCheck(); }),
     ).subscribe({
       next: (appts) => {
         this.appointments = this.sortAppointments(appts);
+        
         if (this.selectedDay) {
           this.selectedDayAppointments = this.getAppointmentsForDay(this.selectedDay);
         }

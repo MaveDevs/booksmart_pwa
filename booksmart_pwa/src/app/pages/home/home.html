@@ -4,7 +4,7 @@
       <h1>Bienvenido{{ userName ? ', ' + userName : '' }}</h1>
       <p>Gestiona la información de tu negocio desde aquí.</p>
     </div>
-    <button type="button" class="btn-primary" (click)="openCreateModal()">+ Nuevo negocio</button>
+    <button *ngIf="isOwner" type="button" class="btn-primary" (click)="openCreateModal()">+ Nuevo negocio</button>
   </header>
 
   <app-alert
@@ -20,9 +20,15 @@
   </section>
 
   <section *ngIf="!isLoading && !errorMessage && establishments.length === 0" class="empty-state">
-    <h2>Aún no tienes un negocio configurado</h2>
-    <p>Cuando estés listo, completa la configuración para comenzar a recibir citas.</p>
-    <button type="button" class="btn-primary" (click)="openCreateModal()">Crear mi primer negocio</button>
+    <div *ngIf="isOwner">
+      <h2>Aún no tienes un negocio configurado</h2>
+      <p>Cuando estés listo, completa la configuración para comenzar a recibir citas.</p>
+      <button type="button" class="btn-primary" (click)="openCreateModal()">Crear mi primer negocio</button>
+    </div>
+    <div *ngIf="!isOwner">
+      <h2>Bienvenido al equipo</h2>
+      <p>Aún no tienes acceso a un negocio. Pide al administrador que te agregue con tu correo electrónico.</p>
+    </div>
   </section>
 
   <section *ngIf="establishments.length > 0" class="establishments-grid">
@@ -30,22 +36,36 @@
       class="establishment-card"
       *ngFor="let establishment of establishments; trackBy: trackByEstablishmentId"
       (click)="goToNegocio(establishment.establecimiento_id)">
-      <div class="card-header">
-        <h2>{{ establishment.nombre }}</h2>
-        <span class="badge" [class.inactive]="!establishment.activo">
+      
+      <div class="card-image-box">
+        <div class="image-placeholder">
+          <span>{{ establishment.nombre.substring(0, 1).toUpperCase() }}</span>
+        </div>
+        <span class="status-badge" [class.inactive]="!establishment.activo">
           {{ establishment.activo ? 'Activo' : 'Inactivo' }}
         </span>
       </div>
 
-      <p class="description" *ngIf="establishment.descripcion">{{ establishment.descripcion }}</p>
-      <p class="description muted" *ngIf="!establishment.descripcion">Sin descripción</p>
+      <div class="card-body">
+        <h2 class="card-title">{{ establishment.nombre }}</h2>
+        <p class="card-description" *ngIf="establishment.descripcion">{{ establishment.descripcion }}</p>
+        <p class="card-description empty" *ngIf="!establishment.descripcion">Sin descripción configurada</p>
 
-      <ul class="meta-list">
-        <li><strong>Dirección:</strong> {{ establishment.direccion || 'Sin dirección' }}</li>
-        <li><strong>Teléfono:</strong> {{ establishment.telefono || 'Sin teléfono' }}</li>
-      </ul>
+        <div class="card-meta">
+          <div class="meta-item">
+            <i class="bi bi-geo-alt meta-icon"></i>
+            <span class="meta-text">{{ establishment.direccion || 'Sin dirección' }}</span>
+          </div>
+          <div class="meta-item">
+            <i class="bi bi-telephone meta-icon"></i>
+            <span class="meta-text">{{ establishment.telefono || 'Sin teléfono' }}</span>
+          </div>
+        </div>
 
-      <span class="card-cta">Ver negocio →</span>
+        <div class="card-footer">
+          <button class="btn-manage">Gestionar Negocio</button>
+        </div>
+      </div>
     </article>
   </section>
 
@@ -91,7 +111,7 @@
         <div id="create-business-map" class="map-embed" aria-label="Mapa para seleccionar ubicación"></div>
 
         <a class="map-link" [href]="mapExternalUrl" target="_blank" rel="noopener noreferrer">
-          Abrir mapa en una pestaña nueva
+          <i class="bi bi-box-arrow-up-right"></i> Abrir mapa en una pestaña nueva
         </a>
       </section>
 

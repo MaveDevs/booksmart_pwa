@@ -22,6 +22,7 @@
         <span class="nav-badge" *ngIf="unreadNotificationsCount > 0">{{ unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount }}</span>
       </a>
       <a
+        *ngIf="isOwner"
         routerLink="/app/subscriptions"
         routerLinkActive="active"
         class="nav-item">

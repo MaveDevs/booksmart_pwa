@@ -120,6 +120,10 @@ export class Auth {
     return this.currentUser?.rol_id === 2;
   }
 
+  isWorker(): boolean {
+    return this.currentUser?.rol_id === 4;
+  }
+
   // Verificar si el usuario tiene un rol específico
   hasRole(roleId: number): boolean {
     return this.currentUser?.rol_id === roleId;
