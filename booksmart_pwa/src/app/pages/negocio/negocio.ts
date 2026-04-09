@@ -132,6 +132,7 @@ export class Negocio implements OnInit, OnDestroy {
   isLoadingMessages = false;
   isSendingMessage = false;
   messageDraft = '';
+  selectedChatStatus: AppointmentStatus | 'ALL' = 'ALL';
 
   // --- Reseñas tab ---
   ratings: Rating[] = [];
@@ -919,6 +920,18 @@ export class Negocio implements OnInit, OnDestroy {
     }
 
     this.ensureChatSelection();
+  }
+
+  get filteredChatAppointments(): Appointment[] {
+    if (this.selectedChatStatus === 'ALL') {
+      return this.appointments;
+    }
+    return this.appointments.filter(a => a.estado === this.selectedChatStatus);
+  }
+
+  setChatStatusFilter(status: AppointmentStatus | 'ALL'): void {
+    this.selectedChatStatus = status;
+    this.cdr.markForCheck();
   }
 
   selectChatAppointment(appointment: Appointment): void {

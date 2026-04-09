@@ -10,6 +10,7 @@ export interface Rating {
   calificacion: number;
   comentario?: string;
   fecha?: string;
+  usuario_nombre?: string;
 }
 
 @Injectable({

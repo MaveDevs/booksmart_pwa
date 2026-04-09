@@ -358,8 +358,8 @@
                 (click)="openAppointmentModal(appt)">
                 <div class="appt-time">{{ appt.hora_inicio.substring(0,5) }} – {{ appt.hora_fin.substring(0,5) }}</div>
                 <div class="appt-info">
-                  <span>Servicio #{{ appt.servicio_id }}</span>
-                  <span>Cliente #{{ appt.cliente_id }}</span>
+                  <span>{{ appt.cliente_nombre ? appt.cliente_nombre + ' ' + appt.cliente_apellido : 'Cliente #' + appt.cliente_id }}</span>
+                  <span class="worker-name" *ngIf="appt.trabajador_nombre"><i class="bi bi-person"></i> {{ appt.trabajador_nombre }}</span>
                 </div>
                 <span class="badge appt-status status-{{ appt.estado | lowercase }}">{{ getStatusLabel(appt.estado) }}</span>
               </article>
@@ -379,32 +379,39 @@
         <aside class="messages-sidebar">
           <div class="section-head compact">
             <h2>Conversaciones</h2>
-            <span class="hint">{{ appointments.length }} citas</span>
+            <span class="hint">{{ filteredChatAppointments.length }} citas</span>
           </div>
 
-          <div class="messages-thread-list" *ngIf="appointments.length > 0">
+          <!-- Filtros de estado para el chat -->
+          <div class="chat-filters">
+            <button class="filter-chip" [class.active]="selectedChatStatus === 'ALL'" (click)="setChatStatusFilter('ALL')">Todas</button>
+            <button class="filter-chip" [class.active]="selectedChatStatus === 'PENDIENTE'" (click)="setChatStatusFilter('PENDIENTE')">Pendientes</button>
+            <button class="filter-chip" [class.active]="selectedChatStatus === 'CONFIRMADA'" (click)="setChatStatusFilter('CONFIRMADA')">Confirmadas</button>
+            <button class="filter-chip" [class.active]="selectedChatStatus === 'COMPLETADA'" (click)="setChatStatusFilter('COMPLETADA')">Exitosas</button>
+          </div>
+
+          <div class="messages-thread-list" *ngIf="filteredChatAppointments.length > 0">
             <button
               type="button"
               class="messages-thread"
-              *ngFor="let appointment of appointments; trackBy: trackByAppointmentId"
+              *ngFor="let appointment of filteredChatAppointments; trackBy: trackByAppointmentId"
               [class.active]="selectedChatAppointment?.cita_id === appointment.cita_id"
               (click)="selectChatAppointment(appointment)">
-              <strong>#{{ appointment.cita_id }} · Servicio {{ appointment.servicio_id }}</strong>
+              <strong>{{ appointment.cliente_nombre ? appointment.cliente_nombre + ' ' + appointment.cliente_apellido : 'Cliente' }}</strong>
               <span>{{ appointment.fecha }} · {{ appointment.hora_inicio.substring(0, 5) }}</span>
-              <small>Cliente #{{ appointment.cliente_id }} · {{ getStatusLabel(appointment.estado) }}</small>
+              <small>{{ appointment.servicio_nombre || 'Servicio' }} · {{ getStatusLabel(appointment.estado) }}</small>
             </button>
           </div>
 
-          <p class="hint" *ngIf="appointments.length === 0">Todavía no hay citas para mostrar chats.</p>
+          <p class="hint" *ngIf="filteredChatAppointments.length === 0">No hay citas con este filtro.</p>
         </aside>
 
         <div class="messages-panel">
           <ng-container *ngIf="selectedChatAppointment; else noChatSelection">
             <div class="messages-panel-header">
               <div>
-                <h2>Cita #{{ selectedChatAppointment.cita_id }}</h2>
+                <h2>Chat con {{ selectedChatAppointment.cliente_nombre || 'Cliente' }}</h2>
                 <p class="hint">
-                  Cliente #{{ selectedChatAppointment.cliente_id }} ·
                   {{ selectedChatAppointment.fecha }} ·
                   {{ selectedChatAppointment.hora_inicio.substring(0, 5) }} – {{ selectedChatAppointment.hora_fin.substring(0, 5) }}
                 </p>
@@ -421,7 +428,7 @@
                 *ngFor="let message of messages; trackBy: trackByMessageId"
                 [class.mine]="isCurrentUserMessage(message)">
                 <div class="message-meta">
-                  <strong>{{ isCurrentUserMessage(message) ? 'Tú' : 'Cliente' }}</strong>
+                  <strong>{{ isCurrentUserMessage(message) ? 'Tú' : (selectedChatAppointment.cliente_nombre || 'Cliente') }}</strong>
                   <time>{{ message.fecha_envio | date: 'short' }}</time>
                 </div>
                 <p>{{ message.contenido }}</p>
@@ -466,7 +473,7 @@
           <div class="ratings-list">
             <article class="rating-item" *ngFor="let rating of ratings; trackBy: trackByRatingId">
               <div class="rating-head">
-                <span>Usuario #{{ rating.usuario_id }}</span>
+                <span>{{ rating.usuario_nombre || 'Usuario #' + rating.usuario_id }}</span>
                 <span class="rating-stars">{{ rating.calificacion }}⭐</span>
                 <span class="rating-date" *ngIf="rating.fecha">{{ rating.fecha }}</span>
               </div>
@@ -645,15 +652,34 @@
       <h3>Detalle de cita</h3>
     </div>
     <div class="modal-body">
-      <p><strong>Servicio:</strong> #{{ selectedAppointment.servicio_id }}</p>
-      <p><strong>Cliente:</strong> #{{ selectedAppointment.cliente_id }}</p>
-      <p><strong>Fecha:</strong> {{ selectedAppointment.fecha }}</p>
-      <p><strong>Horario:</strong> {{ selectedAppointment.hora_inicio.substring(0,5) }} – {{ selectedAppointment.hora_fin.substring(0,5) }}</p>
-      <p>
-        <strong>Estado:</strong>
-        <span class="badge status-{{ selectedAppointment.estado | lowercase }}">{{ getStatusLabel(selectedAppointment.estado) }}</span>
-      </p>
-      <p class="hint">Los mensajes con el cliente se gestionan desde esta cita.</p>
+      <div class="appt-detail-row">
+        <i class="bi bi-person-circle"></i>
+        <div>
+          <p class="label">Cliente</p>
+          <p class="value">{{ selectedAppointment.cliente_nombre || 'Cliente' }} {{ selectedAppointment.cliente_apellido || '' }}</p>
+        </div>
+      </div>
+      <div class="appt-detail-row" *ngIf="selectedAppointment.trabajador_nombre">
+        <i class="bi bi-person-badge"></i>
+        <div>
+          <p class="label">Profesional</p>
+          <p class="value">{{ selectedAppointment.trabajador_nombre }} {{ selectedAppointment.trabajador_apellido }}</p>
+        </div>
+      </div>
+      <div class="appt-detail-row">
+        <i class="bi bi-calendar-event"></i>
+        <div>
+          <p class="label">Fecha y Hora</p>
+          <p class="value">{{ selectedAppointment.fecha }} · {{ selectedAppointment.hora_inicio.substring(0,5) }} – {{ selectedAppointment.hora_fin.substring(0,5) }}</p>
+        </div>
+      </div>
+      <div class="appt-detail-row">
+        <p>
+          <strong>Estado:</strong>
+          <span class="badge status-{{ selectedAppointment.estado | lowercase }}">{{ getStatusLabel(selectedAppointment.estado) }}</span>
+        </p>
+      </div>
+      <p class="hint">{{ selectedAppointment.servicio_nombre || 'Servicio' }}</p>
     </div>
     <div class="modal-footer actions">
       <button

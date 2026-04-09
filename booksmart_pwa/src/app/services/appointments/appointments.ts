@@ -8,12 +8,20 @@ export type AppointmentStatus = 'PENDIENTE' | 'CONFIRMADA' | 'CANCELADA' | 'COMP
 export interface Appointment {
   cita_id: number;
   cliente_id: number;
+  trabajador_id?: number | null;
   servicio_id: number;
   fecha: string;
   hora_inicio: string;
   hora_fin: string;
   estado: AppointmentStatus;
   fecha_creacion: string;
+
+  // Campos enriquecidos
+  cliente_nombre?: string;
+  cliente_apellido?: string;
+  trabajador_nombre?: string;
+  trabajador_apellido?: string;
+  servicio_nombre?: string;
 }
 
 @Injectable({
