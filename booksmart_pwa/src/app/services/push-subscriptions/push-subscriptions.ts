@@ -48,6 +48,10 @@ export class PushSubscriptionsService {
       return false;
     }
 
+    if (!this.swPush.isEnabled) {
+      return false;
+    }
+
     return true;
   }
 
@@ -73,6 +77,10 @@ export class PushSubscriptionsService {
       return 'Tu navegador no soporta notificaciones.';
     }
 
+    if (!this.swPush.isEnabled) {
+      return 'Service Worker desactivado en este build. Prueba en produccion (HTTPS) o habilita SW para pruebas.';
+    }
+
     return 'Las notificaciones push no están disponibles en este entorno.';
   }
 
@@ -83,6 +91,10 @@ export class PushSubscriptionsService {
 
     if (!environment.vapidPublicKey) {
       throw new Error('Falta configurar la VAPID public key en environment.ts.');
+    }
+
+    if (!this.swPush.isEnabled) {
+      throw new Error('Service Worker no habilitado. En desarrollo, compila/ejecuta en modo production para probar push.');
     }
 
     if (typeof Notification === 'undefined') {

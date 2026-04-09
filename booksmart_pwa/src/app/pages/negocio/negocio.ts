@@ -3,6 +3,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, finalize, takeUntil } from 'rxjs';
+import * as L from 'leaflet';
+import { environment } from '../../../environments/environment';
 import { Auth } from '../../services/auth/auth';
 import { ActiveEstablishmentService } from '../../services/establishments/active-establishment';
 import {
@@ -43,6 +45,7 @@ import { PlansList } from '../../components/plans-list/plans-list';
 import { CurrentSubscription } from '../../components/current-subscription/current-subscription';
 
 type TabId = 'general' | 'servicios' | 'horarios' | 'calendario' | 'mensajes' | 'resenas' | 'suscripcion';
+type ProfileImageTarget = 'logo' | 'cover';
 
 @Component({
   selector: 'app-negocio',
@@ -52,6 +55,9 @@ type TabId = 'general' | 'servicios' | 'horarios' | 'calendario' | 'mensajes' | 
   styleUrl: './negocio.scss',
 })
 export class Negocio implements OnInit, OnDestroy {
+  private static readonly DEFAULT_MAP_LAT = 19.432608;
+  private static readonly DEFAULT_MAP_LON = -99.133209;
+
   establishmentId!: number;
   establishment: Establishment | null = null;
   isLoadingEstablishment = true;
@@ -61,10 +67,26 @@ export class Negocio implements OnInit, OnDestroy {
 
   // --- General tab ---
   currentProfile: BusinessProfile | null = null;
-  establishmentForm = { nombre: '', descripcion: '', direccion: '', telefono: '', activo: true };
+  establishmentForm = {
+    nombre: '',
+    descripcion: '',
+    direccion: '',
+    telefono: '',
+    latitud: Negocio.DEFAULT_MAP_LAT,
+    longitud: Negocio.DEFAULT_MAP_LON,
+    activo: true,
+  };
+  isResolvingAddress = false;
+  isResolvingMapAddress = false;
+  isLocatingUser = false;
   publicProfileForm = { descripcion_publica: '', imagen_logo: '', imagen_portada: '' };
   isSavingEstablishment = false;
   isSavingProfile = false;
+  isUploadingLogo = false;
+  isUploadingCover = false;
+  private mapInstance: L.Map | null = null;
+  private marker: L.Marker | null = null;
+  private lastAddressSynced = '';
 
   // --- Servicios tab ---
   services: BusinessService[] = [];
@@ -172,15 +194,27 @@ export class Negocio implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyMap();
     this.destroy$.next();
     this.destroy$.complete();
   }
 
   setTab(tab: TabId): void {
+    const previousTab = this.activeTab;
     this.activeTab = tab;
+
+    if (previousTab === 'general' && tab !== 'general') {
+      this.destroyMap();
+    }
+
     this.clearMessages();
     this.editingServiceId = null;
     this.showServiceForm = false;
+
+    if (tab === 'general') {
+      setTimeout(() => this.initializeMap(), 0);
+    }
+
     if (!this.tabsLoaded.has(tab)) {
       this.tabsLoaded.add(tab);
       this.loadTabData(tab);
@@ -210,11 +244,16 @@ export class Negocio implements OnInit, OnDestroy {
           descripcion: e.descripcion || '',
           direccion: e.direccion || '',
           telefono: e.telefono || '',
+          latitud: e.latitud ?? Negocio.DEFAULT_MAP_LAT,
+          longitud: e.longitud ?? Negocio.DEFAULT_MAP_LON,
           activo: e.activo,
         };
         this.tabsLoaded.add(this.activeTab);
         this.loadTabData(this.activeTab);
         this.loadPublicProfile();
+        if (this.activeTab === 'general') {
+          setTimeout(() => this.initializeMap(), 0);
+        }
       },
       error: () => { this.errorMessage = 'No se pudo cargar el negocio.'; },
     });
@@ -244,6 +283,8 @@ export class Negocio implements OnInit, OnDestroy {
       nombre: this.establishmentForm.nombre.trim(),
       descripcion: this.establishmentForm.descripcion.trim() || undefined,
       direccion: this.establishmentForm.direccion.trim() || undefined,
+      latitud: this.establishmentForm.latitud,
+      longitud: this.establishmentForm.longitud,
       telefono: this.establishmentForm.telefono.trim() || undefined,
       activo: this.establishmentForm.activo,
     };
@@ -274,6 +315,261 @@ export class Negocio implements OnInit, OnDestroy {
       next: (profile) => { this.currentProfile = profile; this.successMessage = 'Perfil público actualizado.'; },
       error: (err) => { this.errorMessage = err?.error?.detail || 'No se pudo guardar el perfil público.'; },
     });
+  }
+
+  async onProfileImageSelected(event: Event, target: ProfileImageTarget): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const isImage = file.type.startsWith('image/');
+    if (!isImage) {
+      this.errorMessage = 'Solo puedes subir archivos de imagen.';
+      input.value = '';
+      return;
+    }
+
+    try {
+      if (target === 'logo') {
+        this.isUploadingLogo = true;
+      } else {
+        this.isUploadingCover = true;
+      }
+
+      this.clearMessages();
+      const imageUrl = await this.uploadImageToCloudinary(file, target);
+      if (target === 'logo') {
+        this.publicProfileForm.imagen_logo = imageUrl;
+      } else {
+        this.publicProfileForm.imagen_portada = imageUrl;
+      }
+      this.successMessage = 'Imagen cargada correctamente. Recuerda guardar el perfil publico.';
+    } catch (error) {
+      this.errorMessage = error instanceof Error
+        ? error.message
+        : 'No se pudo cargar la imagen.';
+    } finally {
+      if (target === 'logo') {
+        this.isUploadingLogo = false;
+      } else {
+        this.isUploadingCover = false;
+      }
+      input.value = '';
+      this.cdr.markForCheck();
+    }
+  }
+
+  private async uploadImageToCloudinary(file: File, target: ProfileImageTarget): Promise<string> {
+    const cloudName = environment.cloudinaryCloudName;
+    const uploadPreset = environment.cloudinaryUploadPreset;
+
+    if (!cloudName || !uploadPreset) {
+      throw new Error('Cloudinary no esta configurado. Define cloudinaryCloudName y cloudinaryUploadPreset en environments.');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', uploadPreset);
+    formData.append('folder', `booksmart/${target}`);
+
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Cloudinary rechazo la carga. Verifica el upload preset.');
+    }
+
+    const payload = await response.json() as { secure_url?: string };
+    if (!payload.secure_url) {
+      throw new Error('Cloudinary no retorno una URL valida.');
+    }
+
+    return payload.secure_url;
+  }
+
+  async locateAddressOnMap(): Promise<void> {
+    await this.syncAddressWithMap(true);
+  }
+
+  async onAddressBlur(): Promise<void> {
+    await this.syncAddressWithMap(false);
+  }
+
+  private async syncAddressWithMap(showErrors: boolean): Promise<void> {
+    const address = this.establishmentForm.direccion.trim();
+    if (!address) {
+      if (showErrors) {
+        this.errorMessage = 'Escribe una direccion para buscarla en el mapa.';
+      }
+      return;
+    }
+
+    if (address === this.lastAddressSynced) {
+      return;
+    }
+
+    this.isResolvingAddress = true;
+    if (showErrors) {
+      this.clearMessages();
+    }
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`,
+      );
+
+      if (!response.ok) {
+        throw new Error('No se pudo consultar la direccion.');
+      }
+
+      const results = await response.json() as Array<{ lat: string; lon: string; display_name: string }>;
+      if (!results.length) {
+        throw new Error('No se encontro esa direccion. Intenta con una mas especifica.');
+      }
+
+      const firstResult = results[0];
+      this.establishmentForm.latitud = Number.parseFloat(firstResult.lat);
+      this.establishmentForm.longitud = Number.parseFloat(firstResult.lon);
+      this.establishmentForm.direccion = firstResult.display_name;
+      this.lastAddressSynced = this.establishmentForm.direccion.trim();
+      this.updateMapPosition();
+    } catch (error) {
+      if (showErrors) {
+        this.errorMessage = error instanceof Error
+          ? error.message
+          : 'No se pudo ubicar la direccion en el mapa.';
+      }
+    } finally {
+      this.isResolvingAddress = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  useCurrentLocation(): void {
+    if (!navigator.geolocation) {
+      this.errorMessage = 'Tu navegador no soporta geolocalizacion.';
+      return;
+    }
+
+    this.isLocatingUser = true;
+    this.clearMessages();
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        this.establishmentForm.latitud = Number(position.coords.latitude.toFixed(6));
+        this.establishmentForm.longitud = Number(position.coords.longitude.toFixed(6));
+        this.updateMapPosition();
+        void this.resolveAddressFromCoordinates();
+        this.isLocatingUser = false;
+        this.cdr.markForCheck();
+      },
+      () => {
+        this.errorMessage = 'No pudimos obtener tu ubicacion. Revisa permisos del navegador.';
+        this.isLocatingUser = false;
+        this.cdr.markForCheck();
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  }
+
+  get mapExternalUrl(): string {
+    return `https://www.openstreetmap.org/?mlat=${this.establishmentForm.latitud}&mlon=${this.establishmentForm.longitud}#map=15/${this.establishmentForm.latitud}/${this.establishmentForm.longitud}`;
+  }
+
+  private initializeMap(): void {
+    const mapElement = document.getElementById('business-profile-map');
+    if (!mapElement || this.mapInstance) {
+      return;
+    }
+
+    this.mapInstance = L.map(mapElement, {
+      zoomControl: true,
+      attributionControl: true,
+    }).setView([this.establishmentForm.latitud, this.establishmentForm.longitud], 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors',
+    }).addTo(this.mapInstance);
+
+    this.marker = L.marker([this.establishmentForm.latitud, this.establishmentForm.longitud], {
+      draggable: true,
+      icon: L.divIcon({
+        className: 'business-map-pin-wrapper',
+        html: '<span class="business-map-pin"></span>',
+        iconSize: [22, 22],
+        iconAnchor: [11, 11],
+      }),
+    }).addTo(this.mapInstance);
+
+    this.marker.on('dragend', () => {
+      const current = this.marker?.getLatLng();
+      if (!current) {
+        return;
+      }
+      this.setCoordinates(current.lat, current.lng);
+    });
+
+    this.mapInstance.on('click', (event: L.LeafletMouseEvent) => {
+      this.setCoordinates(event.latlng.lat, event.latlng.lng);
+    });
+
+    setTimeout(() => this.mapInstance?.invalidateSize(), 0);
+  }
+
+  private updateMapPosition(): void {
+    if (!this.mapInstance || !this.marker) {
+      return;
+    }
+
+    const latLng: L.LatLngExpression = [this.establishmentForm.latitud, this.establishmentForm.longitud];
+    this.marker.setLatLng(latLng);
+    this.mapInstance.setView(latLng, 15);
+  }
+
+  private setCoordinates(lat: number, lon: number): void {
+    this.establishmentForm.latitud = Number(lat.toFixed(6));
+    this.establishmentForm.longitud = Number(lon.toFixed(6));
+    this.updateMapPosition();
+    void this.resolveAddressFromCoordinates();
+    this.cdr.markForCheck();
+  }
+
+  private async resolveAddressFromCoordinates(): Promise<void> {
+    this.isResolvingMapAddress = true;
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${this.establishmentForm.latitud}&lon=${this.establishmentForm.longitud}`,
+      );
+
+      if (!response.ok) {
+        return;
+      }
+
+      const result = await response.json() as { display_name?: string };
+      if (result.display_name) {
+        this.establishmentForm.direccion = result.display_name;
+        this.lastAddressSynced = result.display_name.trim();
+      }
+    } catch {
+      // Keep map interaction responsive even if reverse geocoding fails.
+    } finally {
+      this.isResolvingMapAddress = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  private destroyMap(): void {
+    if (this.mapInstance) {
+      this.mapInstance.remove();
+      this.mapInstance = null;
+      this.marker = null;
+    }
   }
 
   // ─── SERVICES ────────────────────────────────────────────────────────────

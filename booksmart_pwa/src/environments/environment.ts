@@ -1,5 +1,7 @@
 export const environment = {
-    production: false,
+  production: false,
   apiUrl: 'https://booksmartutt.duckdns.org',
   vapidPublicKey: '',
-  };
+  cloudinaryCloudName: '',
+  cloudinaryUploadPreset: '',
+};

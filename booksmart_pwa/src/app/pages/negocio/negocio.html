@@ -76,8 +76,32 @@
           </label>
           <label class="full-width">
             Dirección
-            <input class="form-input" [(ngModel)]="establishmentForm.direccion" placeholder="Dirección del negocio">
+            <input class="form-input" [(ngModel)]="establishmentForm.direccion" (blur)="onAddressBlur()" placeholder="Dirección del negocio">
           </label>
+
+          <section class="full-width map-section">
+            <div class="map-actions">
+              <button type="button" class="btn-secondary" (click)="locateAddressOnMap()" [disabled]="isResolvingAddress || isLocatingUser">
+                {{ isResolvingAddress ? 'Buscando...' : 'Buscar direccion en mapa' }}
+              </button>
+              <button type="button" class="btn-secondary" (click)="useCurrentLocation()" [disabled]="isLocatingUser || isResolvingAddress">
+                {{ isLocatingUser ? 'Ubicando...' : 'Usar mi ubicacion' }}
+              </button>
+            </div>
+
+            <p class="map-coordinates">
+              Lat: {{ establishmentForm.latitud | number: '1.4-6' }} · Lng: {{ establishmentForm.longitud | number: '1.4-6' }}
+            </p>
+
+            <p class="hint" *ngIf="isResolvingMapAddress">Actualizando direccion desde el mapa...</p>
+
+            <div id="business-profile-map" class="map-embed" aria-label="Mapa para seleccionar ubicacion"></div>
+
+            <a class="map-link" [href]="mapExternalUrl" target="_blank" rel="noopener noreferrer">
+              Abrir mapa en una pestana nueva
+            </a>
+          </section>
+
           <label class="full-width">
             Descripción interna
             <textarea class="form-input" rows="3" [(ngModel)]="establishmentForm.descripcion" placeholder="Descripción general"></textarea>
@@ -90,22 +114,26 @@
 
       <section class="card form-card">
         <h2>Perfil público</h2>
-        <p class="hint">Esta información se muestra a los clientes en tu perfil.</p>
+        <p class="hint">Esta información se muestra a los clientes. La descripcion interna solo la ves tu en el panel.</p>
         <div class="form-grid">
           <label class="full-width">
             Descripción pública
             <textarea class="form-input" rows="4" [(ngModel)]="publicProfileForm.descripcion_publica" placeholder="Describe tu negocio para los clientes"></textarea>
           </label>
           <label>
-            URL de logo
-            <input class="form-input" [(ngModel)]="publicProfileForm.imagen_logo" placeholder="https://...">
+            Logo del negocio
+            <input class="form-input" type="file" accept="image/*" (change)="onProfileImageSelected($event, 'logo')" [disabled]="isUploadingLogo || isUploadingCover">
+            <p class="hint" *ngIf="isUploadingLogo">Subiendo logo...</p>
+            <img class="profile-image-preview" *ngIf="publicProfileForm.imagen_logo" [src]="publicProfileForm.imagen_logo" alt="Vista previa del logo">
           </label>
           <label>
-            URL de portada
-            <input class="form-input" [(ngModel)]="publicProfileForm.imagen_portada" placeholder="https://...">
+            Portada del negocio
+            <input class="form-input" type="file" accept="image/*" (change)="onProfileImageSelected($event, 'cover')" [disabled]="isUploadingLogo || isUploadingCover">
+            <p class="hint" *ngIf="isUploadingCover">Subiendo portada...</p>
+            <img class="profile-image-preview" *ngIf="publicProfileForm.imagen_portada" [src]="publicProfileForm.imagen_portada" alt="Vista previa de portada">
           </label>
         </div>
-        <button class="btn-primary" type="button" [disabled]="isSavingProfile" (click)="savePublicProfile()">
+        <button class="btn-primary" type="button" [disabled]="isSavingProfile || isUploadingLogo || isUploadingCover" (click)="savePublicProfile()">
           {{ isSavingProfile ? 'Guardando...' : 'Guardar perfil público' }}
         </button>
       </section>
