@@ -16,6 +16,8 @@ export class NotificationsPage implements OnInit {
   notifications: AppNotification[] = [];
   isLoading = true;
   isRegisteringPush = false;
+  isSubscribed = false;
+  isCheckingSubscription = true;
   errorMessage = '';
   successMessage = '';
 
@@ -32,6 +34,27 @@ export class NotificationsPage implements OnInit {
 
   ngOnInit(): void {
     this.loadNotifications();
+    this.checkSubscriptionStatus();
+  }
+
+  checkSubscriptionStatus(): void {
+    // Si ya tenemos permiso denegado o concedido nativamente, podemos actuar más rápido
+    if (typeof Notification !== 'undefined') {
+      if (Notification.permission === 'granted') {
+        // Probablemente suscrito, esperamos confirmación del SW
+        this.isSubscribed = true;
+      }
+    }
+
+    this.pushSubscriptionsService.getCurrentSubscription().subscribe({
+      next: (sub) => {
+        this.isSubscribed = !!sub;
+        this.isCheckingSubscription = false;
+      },
+      error: () => {
+        this.isCheckingSubscription = false;
+      }
+    });
   }
 
   get unreadCount(): number {

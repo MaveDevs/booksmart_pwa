@@ -16,7 +16,7 @@ export interface PushSubscriptionRecord {
   providedIn: 'root',
 })
 export class PushSubscriptionsService {
-  private readonly basePath = '/api/v1/push-subscriptions';
+  private readonly basePath = '/api/v1/push-subscriptions/';
 
   constructor(
     private api: Api,
@@ -85,45 +85,64 @@ export class PushSubscriptionsService {
   }
 
   async registerCurrentDevice(): Promise<PushSubscriptionRecord> {
+    console.log('[PushService] Registrando dispositivo...');
+    console.log('[PushService] VAPID Public Key:', environment.vapidPublicKey);
+    console.log('[PushService] SwPush habilitado:', this.swPush.isEnabled);
+
     if (!this.isBrowserPushSupported()) {
-      throw new Error(this.getUnsupportedReason());
+      const reason = this.getUnsupportedReason();
+      console.error('[PushService] Browser no soportado:', reason);
+      throw new Error(reason);
     }
 
     if (!environment.vapidPublicKey) {
+      console.error('[PushService] Falta VAPID key');
       throw new Error('Falta configurar la VAPID public key en environment.ts.');
     }
 
-    if (!this.swPush.isEnabled) {
-      throw new Error('Service Worker no habilitado. En desarrollo, compila/ejecuta en modo production para probar push.');
-    }
+    const permission = typeof Notification !== 'undefined' ? Notification.permission : 'default';
+    console.log('[PushService] Estado de permiso:', permission);
 
-    if (typeof Notification === 'undefined') {
-      throw new Error('Tu navegador no soporta notificaciones push.');
-    }
-
-    if (Notification.permission === 'denied') {
+    if (permission === 'denied') {
+      console.error('[PushService] Permiso denegado');
       throw new Error('Las notificaciones están bloqueadas en el navegador.');
     }
 
-    if (Notification.permission !== 'granted') {
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
+    if (permission !== 'granted') {
+      console.log('[PushService] Solicitando permiso...');
+      const requestedPermission = await Notification.requestPermission();
+      console.log('[PushService] Resultado solicitud permiso:', requestedPermission);
+      if (requestedPermission !== 'granted') {
         throw new Error('No se concedió permiso para notificaciones.');
       }
     }
 
-    await navigator.serviceWorker.ready;
+    try {
+      console.log('[PushService] Esperando Service Worker Ready...');
+      const registration = await navigator.serviceWorker.ready;
+      console.log('[PushService] Service Worker listo:', registration.scope);
 
-    const subscription = await this.swPush.requestSubscription({
-      serverPublicKey: environment.vapidPublicKey,
-    });
+      console.log('[PushService] Solicitando suscripción al Push Service del navegador...');
+      const subscription = await this.swPush.requestSubscription({
+        serverPublicKey: environment.vapidPublicKey,
+      });
+      console.log('[PushService] Suscripción obtenida con éxito:', subscription.endpoint);
 
-    return firstValueFrom(
-      this.api.post<PushSubscriptionRecord>(this.basePath, subscription.toJSON()),
-    );
+      console.log('[PushService] Enviando suscripción al servidor backend...');
+      return firstValueFrom(
+        this.api.post<PushSubscriptionRecord>(this.basePath, subscription.toJSON()),
+      );
+    } catch (err) {
+      console.error('[PushService] Error crítico durante la suscripción:', err);
+      throw err;
+    }
   }
 
   removeSubscription(endpoint: string): Observable<void> {
     return this.api.delete<void>(`${this.basePath}?endpoint=${encodeURIComponent(endpoint)}`);
+  }
+
+  getCurrentSubscription(): Observable<PushSubscription | null> {
+    return this.swPush.subscription;
   }
 }

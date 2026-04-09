@@ -125,6 +125,6 @@ export class RealtimeService {
       ? normalizedBaseUrl.replace('https://', 'wss://')
       : normalizedBaseUrl.replace('http://', 'ws://');
 
-    return `${wsBaseUrl}/api/v1/ws?token=${encodeURIComponent(token)}`;
+    return `${wsBaseUrl}/api/v1/ws/?token=${encodeURIComponent(token)}`;
   }
 }
