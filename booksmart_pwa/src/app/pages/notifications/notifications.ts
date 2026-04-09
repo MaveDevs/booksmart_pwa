@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy } from '@angular/core';
+import { first, timeout, catchError, of, Subscription } from 'rxjs';
 
 import { Alert } from '../../shared/alert/alert';
 import { NotificationsService, AppNotification } from '../../services/notifications/notifications';
@@ -12,7 +13,7 @@ import { PushSubscriptionsService } from '../../services/push-subscriptions/push
   templateUrl: './notifications.html',
   styleUrl: './notifications.scss',
 })
-export class NotificationsPage implements OnInit {
+export class NotificationsPage implements OnInit, OnDestroy {
   notifications: AppNotification[] = [];
   isLoading = true;
   isRegisteringPush = false;
@@ -20,6 +21,8 @@ export class NotificationsPage implements OnInit {
   isCheckingSubscription = true;
   errorMessage = '';
   successMessage = '';
+
+  private subCheck?: Subscription;
 
   private readonly notificationsService = inject(NotificationsService);
   private readonly pushSubscriptionsService = inject(PushSubscriptionsService);
@@ -37,24 +40,27 @@ export class NotificationsPage implements OnInit {
     this.checkSubscriptionStatus();
   }
 
+  ngOnDestroy(): void {
+    this.subCheck?.unsubscribe();
+  }
+
   checkSubscriptionStatus(): void {
-    // Si ya tenemos permiso denegado o concedido nativamente, podemos actuar más rápido
-    if (typeof Notification !== 'undefined') {
-      if (Notification.permission === 'granted') {
-        // Probablemente suscrito, esperamos confirmación del SW
-        this.isSubscribed = true;
-      }
+    // Si ya tenemos permiso concedido nativamente, mostramos estado activo preventivamente
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      this.isSubscribed = true;
     }
 
-    this.pushSubscriptionsService.getCurrentSubscription().subscribe({
-      next: (sub) => {
+    // Consultamos al SW con un timeout para no quedarnos bloqueados
+    this.subCheck = this.pushSubscriptionsService.getCurrentSubscription()
+      .pipe(
+        first(),
+        timeout(3000), // Si no responde en 3s, seguimos adelante
+        catchError(() => of(null))
+      )
+      .subscribe((sub) => {
         this.isSubscribed = !!sub;
         this.isCheckingSubscription = false;
-      },
-      error: () => {
-        this.isCheckingSubscription = false;
-      }
-    });
+      });
   }
 
   get unreadCount(): number {
