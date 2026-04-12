@@ -35,6 +35,10 @@ export class Workers {
     return this.api.get<Worker>(`${this.collectionPath}${id}`);
   }
 
+  getMyWorkerProfile(): Observable<Worker> {
+    return this.api.get<Worker>(`${this.collectionPath}me`);
+  }
+
   create(data: Partial<Worker>): Observable<Worker> {
     return this.api.post<Worker>(this.collectionPath, data);
   }

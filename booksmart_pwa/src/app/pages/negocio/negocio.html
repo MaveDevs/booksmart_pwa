@@ -282,6 +282,45 @@
         </div>
       </section>
 
+      <section class="card closures-card">
+        <div class="section-head compact">
+          <h2>Cierres especiales</h2>
+          <span class="hint">Feriados, eventos o días no laborables</span>
+        </div>
+
+        <p class="hint">Estos cierres bloquean citas para la fecha seleccionada sin alterar el horario semanal.</p>
+
+        <form class="closures-form" (ngSubmit)="createSpecialClosure()">
+          <label>
+            Fecha de cierre
+            <input class="form-input" type="date" [(ngModel)]="specialClosureForm.fecha" name="specialClosureDate">
+          </label>
+          <label>
+            Motivo
+            <input class="form-input" type="text" [(ngModel)]="specialClosureForm.motivo" name="specialClosureReason" placeholder="Feriado, mantenimiento, evento...">
+          </label>
+          <div class="closures-actions">
+            <button class="btn-primary" type="submit" [disabled]="isSavingSpecialClosure">
+              {{ isSavingSpecialClosure ? 'Guardando...' : 'Agregar cierre' }}
+            </button>
+          </div>
+        </form>
+
+        <p *ngIf="isLoadingSpecialClosures" class="hint">Cargando cierres especiales...</p>
+
+        <div class="closures-list" *ngIf="!isLoadingSpecialClosures && specialClosures.length > 0">
+          <article class="closure-item" *ngFor="let closure of specialClosures; trackBy: trackBySpecialClosureId">
+            <div>
+              <strong>{{ closure.fecha }}</strong>
+              <p>{{ closure.motivo || 'Cerrado por día especial' }}</p>
+            </div>
+            <button class="btn-secondary" type="button" (click)="deleteSpecialClosure(closure.cierre_id)">Eliminar</button>
+          </article>
+        </div>
+
+        <p class="hint" *ngIf="!isLoadingSpecialClosures && specialClosures.length === 0">No hay cierres especiales registrados.</p>
+      </section>
+
     </div>
 
     <!-- ═══════════════════════ TAB: CALENDARIO ═══════════════════════ -->
@@ -317,9 +356,9 @@
         <!-- Calendar grid -->
         <section class="card">
           <div class="calendar-nav">
-            <button class="btn-secondary" type="button" (click)="prevMonth()">‹</button>
+            <button class="btn-nav-month" type="button" (click)="prevMonth()">‹</button>
             <h2 class="calendar-month-label">{{ calendarMonthLabel | titlecase }}</h2>
-            <button class="btn-secondary" type="button" (click)="nextMonth()">›</button>
+            <button class="btn-nav-month" type="button" (click)="nextMonth()">›</button>
           </div>
           <div class="calendar-weekdays">
             <span>Lun</span><span>Mar</span><span>Mié</span>
@@ -350,7 +389,9 @@
               Citas del {{ selectedDay.getDate() }} de
               {{ selectedDay.toLocaleDateString('es-ES', { month: 'long' }) }}
             </h2>
-            <p *ngIf="selectedDayAppointments.length === 0">No hay citas para este día.</p>
+            <div class="empty-appointments" *ngIf="selectedDayAppointments.length === 0">
+              <p>No hay citas para este día.</p>
+            </div>
             <div class="appt-list" *ngIf="selectedDayAppointments.length > 0">
               <article
                 class="appt-item"
@@ -375,22 +416,63 @@
 
     <!-- ═══════════════════════ TAB: MENSAJES ═══════════════════════ -->
     <div class="tab-content" *ngIf="activeTab === 'mensajes'">
+      <section class="card messages-filters-card">
+        <div class="section-head compact">
+          <h2>Filtros de conversaciones</h2>
+          <span class="hint">{{ filteredChatAppointments.length }} citas</span>
+        </div>
+
+        <!-- Filtros mejorados: Período y Estado -->
+        <div class="filters-container">
+          <!-- Filtro de Período -->
+          <div class="filter-group">
+            <p class="filter-group-label">Período</p>
+            <div class="filter-group-chips">
+              <button class="filter-chip chip-date" [class.active]="selectedChatDate === 'HOY'" (click)="setChatDateFilter('HOY')">
+                <i class="bi bi-calendar-today"></i>
+                Hoy
+              </button>
+              <button class="filter-chip chip-date" [class.active]="selectedChatDate === 'POSTERIORES'" (click)="setChatDateFilter('POSTERIORES')">
+                <i class="bi bi-arrow-right-circle"></i>
+                Posteriores
+              </button>
+              <button class="filter-chip chip-date" [class.active]="selectedChatDate === 'ALL'" (click)="setChatDateFilter('ALL')">
+                <i class="bi bi-calendar3"></i>
+                Histórico
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtro de Estado -->
+          <div class="filter-group">
+            <p class="filter-group-label">Estado</p>
+            <div class="filter-group-chips">
+              <button class="filter-chip chip-all" [class.active]="selectedChatStatus === 'ALL'" (click)="setChatStatusFilter('ALL')">
+                <i class="bi bi-funnel"></i>
+                Todo
+              </button>
+              <button class="filter-chip chip-pendiente" [class.active]="selectedChatStatus === 'PENDIENTE'" (click)="setChatStatusFilter('PENDIENTE')">
+                <i class="bi bi-clock-history"></i>
+                Pendientes
+              </button>
+              <button class="filter-chip chip-confirmada" [class.active]="selectedChatStatus === 'CONFIRMADA'" (click)="setChatStatusFilter('CONFIRMADA')">
+                <i class="bi bi-check-circle"></i>
+                Confirmadas
+              </button>
+              <button class="filter-chip chip-completada" [class.active]="selectedChatStatus === 'COMPLETADA'" (click)="setChatStatusFilter('COMPLETADA')">
+                <i class="bi bi-check-all"></i>
+                Exitosas
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="card messages-layout">
         <aside class="messages-sidebar">
           <div class="section-head compact">
             <h2>Conversaciones</h2>
             <span class="hint">{{ filteredChatAppointments.length }} citas</span>
-          </div>
-
-          <!-- Filtros de fecha y estado para el chat -->
-          <div class="chat-filters">
-            <button class="filter-chip chip-date" [class.active]="selectedChatDate === todayStr" (click)="setChatDateFilter(todayStr)">Hoy</button>
-            <button class="filter-chip chip-date" [class.active]="selectedChatDate === 'ALL'" (click)="setChatDateFilter('ALL')">Histórico</button>
-            <div class="filter-divider"></div>
-            <button class="filter-chip chip-all" [class.active]="selectedChatStatus === 'ALL'" (click)="setChatStatusFilter('ALL')">Todo</button>
-            <button class="filter-chip chip-pendiente" [class.active]="selectedChatStatus === 'PENDIENTE'" (click)="setChatStatusFilter('PENDIENTE')">Pendientes</button>
-            <button class="filter-chip chip-confirmada" [class.active]="selectedChatStatus === 'CONFIRMADA'" (click)="setChatStatusFilter('CONFIRMADA')">Confirmadas</button>
-            <button class="filter-chip chip-completada" [class.active]="selectedChatStatus === 'COMPLETADA'" (click)="setChatStatusFilter('COMPLETADA')">Exitosas</button>
           </div>
 
           <div class="messages-thread-list" *ngIf="filteredChatAppointments.length > 0">
@@ -454,6 +536,7 @@
 
           <ng-template #noChatSelection>
             <div class="empty-chat">
+              <i class="bi bi-chat-heart"></i>
               <h3>Selecciona una cita</h3>
               <p>Elige una conversación desde la lista para ver y responder mensajes.</p>
             </div>
@@ -651,6 +734,9 @@
   <!-- Modal: appointment detail -->
   <div class="modal-backdrop" *ngIf="showAppointmentModal" (click)="closeAppointmentModal()"></div>
   <div class="modal" *ngIf="showAppointmentModal && selectedAppointment" role="dialog" aria-modal="true">
+    <button class="modal-close-btn" type="button" aria-label="Cerrar" (click)="closeAppointmentModal()">
+      <i class="bi bi-x"></i>
+    </button>
     <div class="modal-header">
       <h3>Detalle de cita</h3>
     </div>
@@ -677,50 +763,59 @@
         </div>
       </div>
       <div class="appt-detail-row">
-        <p>
-          <strong>Estado:</strong>
-          <span class="badge status-{{ selectedAppointment.estado | lowercase }}">{{ getStatusLabel(selectedAppointment.estado) }}</span>
-        </p>
+        <i class="bi bi-check-circle"></i>
+        <div>
+          <p class="label">Estado</p>
+          <p class="value"><span class="badge status-{{ selectedAppointment.estado | lowercase }}">{{ getStatusLabel(selectedAppointment.estado) }}</span></p>
+        </div>
       </div>
-      <p class="hint">{{ selectedAppointment.servicio_nombre || 'Servicio' }}</p>
+      <div class="appt-detail-row">
+        <i class="bi bi-briefcase"></i>
+        <div>
+          <p class="label">Servicio</p>
+          <p class="value">{{ selectedAppointment.servicio_nombre || 'Servicio' }}</p>
+        </div>
+      </div>
     </div>
-    <div class="modal-footer actions">
-      <button
-        class="btn-primary"
-        type="button"
-        *ngIf="selectedAppointment.estado === 'PENDIENTE'"
-        [disabled]="isUpdatingAppointment"
-        (click)="acceptAppointment()">
-        Confirmar cita
+    <div class="modal-footer">
+      <button class="btn-messages" type="button" (click)="openAppointmentMessages()">
+        <i class="bi bi-chat-dots"></i>
+        <span>Mensajes</span>
       </button>
-      <button
-        class="btn-secondary"
-        type="button"
-        *ngIf="selectedAppointment.estado === 'PENDIENTE'"
-        [disabled]="isUpdatingAppointment"
-        (click)="declineAppointment()">
-        Rechazar cita
-      </button>
-      <button
-        class="btn-primary"
-        type="button"
-        *ngIf="selectedAppointment.estado === 'CONFIRMADA'"
-        [disabled]="isUpdatingAppointment"
-        (click)="updateAppointmentStatus('COMPLETADA')">
-        Marcar completada
-      </button>
-      <button
-        class="btn-danger"
-        type="button"
-        *ngIf="selectedAppointment.estado !== 'CANCELADA' && selectedAppointment.estado !== 'COMPLETADA'"
-        [disabled]="isUpdatingAppointment"
-        (click)="updateAppointmentStatus('CANCELADA')">
-        Cancelar cita
-      </button>
-      <button class="btn-secondary" type="button" (click)="openAppointmentMessages()">
-        Ver mensajes
-      </button>
-      <button class="btn-secondary" type="button" (click)="closeAppointmentModal()">Cerrar</button>
+      <div class="modal-actions">
+        <button
+          class="btn-primary"
+          type="button"
+          *ngIf="selectedAppointment.estado === 'PENDIENTE'"
+          [disabled]="isUpdatingAppointment"
+          (click)="acceptAppointment()">
+          Confirmar cita
+        </button>
+        <button
+          class="btn-secondary"
+          type="button"
+          *ngIf="selectedAppointment.estado === 'PENDIENTE'"
+          [disabled]="isUpdatingAppointment"
+          (click)="declineAppointment()">
+          Rechazar cita
+        </button>
+        <button
+          class="btn-primary"
+          type="button"
+          *ngIf="selectedAppointment.estado === 'CONFIRMADA'"
+          [disabled]="isUpdatingAppointment"
+          (click)="updateAppointmentStatus('COMPLETADA')">
+          Marcar completada
+        </button>
+        <button
+          class="btn-danger"
+          type="button"
+          *ngIf="selectedAppointment.estado !== 'CANCELADA' && selectedAppointment.estado !== 'COMPLETADA'"
+          [disabled]="isUpdatingAppointment"
+          (click)="updateAppointmentStatus('CANCELADA')">
+          Cancelar cita
+        </button>
+      </div>
     </div>
   </div>
 

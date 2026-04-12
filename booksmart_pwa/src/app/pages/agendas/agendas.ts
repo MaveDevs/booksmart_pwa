@@ -1,12 +1,13 @@
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { catchError, finalize, map, switchMap } from 'rxjs';
 import { Alert } from '../../shared/alert/alert';
 import { Auth } from '../../services/auth/auth';
 import { Establishment, Establishments } from '../../services/establishments/establishments';
 import { Agenda, Agendas } from '../../services/agendas/agendas';
 import { Appointment, Appointments } from '../../services/appointments/appointments';
+import { BusinessServices } from '../../services/business-services/business-services';
 
 @Component({
   selector: 'app-agendas',
@@ -43,17 +44,18 @@ export class AgendasPage implements OnInit {
     private authService: Auth,
     private establishmentsService: Establishments,
     private agendasService: Agendas,
-    private appointmentsService: Appointments
+    private appointmentsService: Appointments,
+    private businessServicesApi: BusinessServices,
   ) {}
 
   ngOnInit(): void {
     this.loadEstablishments();
-    this.loadAppointments();
   }
 
   onEstablishmentChange(value: string): void {
     this.selectedEstablishmentId = Number(value);
     this.loadAgendas();
+    this.loadAppointments();
   }
 
   getDayLabel(day: string): string {
@@ -103,6 +105,7 @@ export class AgendasPage implements OnInit {
               : null;
 
           this.loadAgendas();
+          this.loadAppointments();
         },
         error: (error) => {
           this.errorMessage = error?.error?.detail || 'No se pudieron cargar los establecimientos.';
@@ -136,14 +139,30 @@ export class AgendasPage implements OnInit {
   }
 
   private loadAppointments(): void {
+    if (!this.selectedEstablishmentId) {
+      this.appointments = [];
+      this.isLoadingAppointments = false;
+      return;
+    }
+
     this.isLoadingAppointments = true;
 
-    this.appointmentsService
-      .getMine()
-      .pipe(finalize(() => {
+    this.businessServicesApi
+      .getByEstablishment(this.selectedEstablishmentId)
+      .pipe(
+        map((services) => new Set((services ?? []).map((service) => service.servicio_id))),
+        switchMap((serviceIds) => this.appointmentsService.getByEstablishment(this.selectedEstablishmentId!).pipe(
+          map((appointments) => (Array.isArray(appointments)
+            ? appointments.filter((appointment) => serviceIds.has(appointment.servicio_id))
+            : [])),
+        )),
+        // Si falla la carga de servicios, dejamos al backend filtrar por establecimiento.
+        catchError(() => this.appointmentsService.getByEstablishment(this.selectedEstablishmentId!)),
+        finalize(() => {
         this.isLoadingAppointments = false;
         this.cdr.markForCheck();
-      }))
+        }),
+      )
       .subscribe({
         next: (appointments) => {
           this.appointments = Array.isArray(appointments) ? appointments : [];

@@ -66,6 +66,8 @@ label {
 	color: var(--color-text-strong);
 	font-weight: 600;
 	font-size: 0.9rem;
+	font-family: inherit;
+	line-height: 1.5;
 }
 
 .form-input {
@@ -76,6 +78,8 @@ label {
 	font-size: 0.95rem;
 	background: var(--color-surface-muted);
 	color: var(--color-text);
+	font-family: inherit;
+	line-height: 1.5;
 	transition: all 0.2s ease;
 	box-sizing: border-box;
 

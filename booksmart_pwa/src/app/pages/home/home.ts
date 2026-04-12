@@ -13,6 +13,12 @@ import {
 import { ActiveEstablishmentService } from '../../services/establishments/active-establishment';
 import { Alert } from '../../shared/alert/alert';
 
+interface AddressSuggestion {
+  display_name: string;
+  lat: string;
+  lon: string;
+}
+
 @Component({
   selector: 'app-home',
   imports: [CommonModule, FormsModule, Alert],
@@ -30,6 +36,11 @@ export class Home implements OnInit {
   isResolvingMapAddress = false;
   isLocatingUser = false;
   showCreateModal = false;
+  currentCreateStep = 1;
+  addressSuggestions: AddressSuggestion[] = [];
+  addressSearchMessage = '';
+  isSearchingAddresses = false;
+  selectedAddressIndex = '';
   errorMessage = '';
   createErrorMessage = '';
   userName = '';
@@ -43,6 +54,8 @@ export class Home implements OnInit {
   };
   private mapInstance: L.Map | null = null;
   private marker: L.Marker | null = null;
+  private addressSearchTimeout: ReturnType<typeof setTimeout> | null = null;
+  private addressSearchRequestId = 0;
 
   private cdr = inject(ChangeDetectorRef);
 
@@ -91,9 +104,14 @@ export class Home implements OnInit {
   }
 
   openCreateModal(): void {
+    this.resetCreateForm();
     this.showCreateModal = true;
     this.createErrorMessage = '';
-    setTimeout(() => this.initializeMap(), 0);
+    setTimeout(() => {
+      if (this.currentCreateStep === 2) {
+        this.initializeMap();
+      }
+    }, 0);
   }
 
   closeCreateModal(): void {
@@ -103,10 +121,47 @@ export class Home implements OnInit {
 
     this.showCreateModal = false;
     this.createErrorMessage = '';
+    this.clearAddressSearchTimer();
     this.destroyMap();
   }
 
+  nextCreateStep(): void {
+    if (!this.establishmentForm.nombre.trim()) {
+      this.createErrorMessage = 'El nombre del negocio es obligatorio.';
+      return;
+    }
+
+    this.createErrorMessage = '';
+    this.currentCreateStep = 2;
+    setTimeout(() => this.initializeMap(), 0);
+  }
+
+  previousCreateStep(): void {
+    this.createErrorMessage = '';
+    this.currentCreateStep = 1;
+  }
+
+  goToCreateStep(step: 1 | 2): void {
+    if (step === 1) {
+      this.previousCreateStep();
+      return;
+    }
+
+    this.nextCreateStep();
+  }
+
+  onAddressInputChange(value: string): void {
+    this.establishmentForm.direccion = value;
+    this.selectedAddressIndex = '';
+    this.scheduleAddressSearch();
+  }
+
   createEstablishment(): void {
+    if (this.currentCreateStep === 1) {
+      this.nextCreateStep();
+      return;
+    }
+
     const user = this.authService.getUser();
     if (!user) {
       this.errorMessage = 'No se encontró sesión activa.';
@@ -143,14 +198,7 @@ export class Home implements OnInit {
         next: (establishment) => {
           this.activeEstablishmentService.setEstablishmentId(establishment.establecimiento_id);
           this.establishments = [establishment, ...this.establishments];
-          this.establishmentForm = {
-            nombre: '',
-            descripcion: '',
-            direccion: '',
-            telefono: '',
-            latitud: Home.DEFAULT_MAP_LAT,
-            longitud: Home.DEFAULT_MAP_LON,
-          };
+          this.resetCreateForm();
           this.showCreateModal = false;
           this.destroyMap();
           this.goToNegocio(establishment.establecimiento_id);
@@ -170,25 +218,24 @@ export class Home implements OnInit {
 
     this.isResolvingAddress = true;
     this.createErrorMessage = '';
+    this.addressSearchMessage = '';
 
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`,
+        `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&accept-language=es&q=${encodeURIComponent(address)}`,
       );
 
       if (!response.ok) {
         throw new Error('No se pudo consultar la dirección.');
       }
 
-      const results = await response.json() as Array<{ lat: string; lon: string; display_name: string }>;
+      const results = await response.json() as AddressSuggestion[];
       if (!results.length) {
         throw new Error('No se encontró esa dirección. Intenta con una más específica.');
       }
 
-      const firstResult = results[0];
-      this.establishmentForm.latitud = Number.parseFloat(firstResult.lat);
-      this.establishmentForm.longitud = Number.parseFloat(firstResult.lon);
-      this.establishmentForm.direccion = firstResult.display_name;
+      this.addressSuggestions = results;
+      this.selectAddressSuggestion(results[0]);
       this.updateMapPosition();
     } catch (error) {
       this.createErrorMessage = error instanceof Error
@@ -198,6 +245,73 @@ export class Home implements OnInit {
       this.isResolvingAddress = false;
       this.cdr.markForCheck();
     }
+  }
+
+  async searchAddressSuggestions(query: string): Promise<void> {
+    const address = query.trim();
+    this.addressSearchMessage = '';
+
+    if (address.length < 3) {
+      this.addressSuggestions = [];
+      return;
+    }
+
+    this.isSearchingAddresses = true;
+    const requestId = ++this.addressSearchRequestId;
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&accept-language=es&q=${encodeURIComponent(address)}`,
+      );
+
+      if (!response.ok) {
+        throw new Error('No se pudo consultar la dirección.');
+      }
+
+      const results = await response.json() as AddressSuggestion[];
+      if (requestId !== this.addressSearchRequestId) {
+        return;
+      }
+
+      this.selectedAddressIndex = '';
+      this.addressSuggestions = results;
+      this.addressSearchMessage = results.length
+        ? 'Selecciona una coincidencia para centrar el mapa.'
+        : 'No se encontraron coincidencias.';
+    } catch {
+      if (requestId === this.addressSearchRequestId) {
+        this.selectedAddressIndex = '';
+        this.addressSuggestions = [];
+        this.addressSearchMessage = 'No se pudo buscar direcciones en este momento.';
+      }
+    } finally {
+      if (requestId === this.addressSearchRequestId) {
+        this.isSearchingAddresses = false;
+        this.cdr.markForCheck();
+      }
+    }
+  }
+
+  selectAddressSuggestion(suggestion: AddressSuggestion): void {
+    this.clearAddressSearchTimer();
+    this.establishmentForm.direccion = suggestion.display_name;
+    this.establishmentForm.latitud = Number.parseFloat(suggestion.lat);
+    this.establishmentForm.longitud = Number.parseFloat(suggestion.lon);
+    this.selectedAddressIndex = '';
+    this.addressSuggestions = [];
+    this.addressSearchMessage = 'Ubicación seleccionada. Ajusta el marcador si lo necesitas.';
+    this.updateMapPosition();
+    void this.resolveAddressFromCoordinates();
+    this.cdr.markForCheck();
+  }
+
+  selectAddressByIndex(indexValue: string | number): void {
+    const index = Number(indexValue);
+    if (Number.isNaN(index) || index < 0 || index >= this.addressSuggestions.length) {
+      return;
+    }
+
+    this.selectAddressSuggestion(this.addressSuggestions[index]);
   }
 
   useCurrentLocation(): void {
@@ -270,6 +384,41 @@ export class Home implements OnInit {
     });
 
     setTimeout(() => this.mapInstance?.invalidateSize(), 0);
+  }
+
+  private resetCreateForm(): void {
+    this.currentCreateStep = 1;
+    this.addressSuggestions = [];
+    this.addressSearchMessage = '';
+    this.isSearchingAddresses = false;
+    this.selectedAddressIndex = '';
+    this.createErrorMessage = '';
+    this.clearAddressSearchTimer();
+    this.establishmentForm = {
+      nombre: '',
+      descripcion: '',
+      direccion: '',
+      telefono: '',
+      latitud: Home.DEFAULT_MAP_LAT,
+      longitud: Home.DEFAULT_MAP_LON,
+    };
+  }
+
+  private clearAddressSearchTimer(): void {
+    if (this.addressSearchTimeout) {
+      clearTimeout(this.addressSearchTimeout);
+      this.addressSearchTimeout = null;
+    }
+  }
+
+  private scheduleAddressSearch(): void {
+    this.clearAddressSearchTimer();
+    this.addressSearchMessage = '';
+    this.addressSuggestions = [];
+
+    this.addressSearchTimeout = setTimeout(() => {
+      void this.searchAddressSuggestions(this.establishmentForm.direccion);
+    }, 350);
   }
 
   private updateMapPosition(): void {

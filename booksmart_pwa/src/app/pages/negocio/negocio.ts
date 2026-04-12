@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, ChangeDetectorRef, inject } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, finalize, takeUntil } from 'rxjs';
+import { Subject, catchError, finalize, map, switchMap, takeUntil } from 'rxjs';
 import * as L from 'leaflet';
 import { environment } from '../../../environments/environment';
 import { Auth } from '../../services/auth/auth';
@@ -30,6 +30,11 @@ import {
   Agendas,
   DayOfWeek,
 } from '../../services/agendas/agendas';
+import {
+  SpecialClosure,
+  SpecialClosureCreate,
+  SpecialClosuresService,
+} from '../../services/special-closures/special-closures';
 import {
   Appointment,
   Appointments,
@@ -108,6 +113,10 @@ export class Negocio implements OnInit, OnDestroy {
   agendaModalExistingId: number | null = null;
   agendaForm = { hora_inicio: '09:00', hora_fin: '18:00' };
   isSavingAgenda = false;
+  specialClosures: SpecialClosure[] = [];
+  isLoadingSpecialClosures = false;
+  specialClosureForm = { fecha: '', motivo: '' };
+  isSavingSpecialClosure = false;
 
   readonly DAYS_OF_WEEK: DayOfWeek[] = [
     'LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES', 'SABADO', 'DOMINGO',
@@ -146,6 +155,7 @@ export class Negocio implements OnInit, OnDestroy {
   // --- Trabajadores ---
   workers: Worker[] = [];
   selectedWorkerId: number | null = null;
+  currentWorkerId: number | null = null;
   isLoadingWorkers = false;
   showWorkerForm = false;
   isSubmittingWorker = false;
@@ -173,6 +183,7 @@ export class Negocio implements OnInit, OnDestroy {
     private profilesService: Profiles,
     private businessServicesApi: BusinessServices,
     private agendasService: Agendas,
+    private specialClosuresService: SpecialClosuresService,
     private appointmentsService: Appointments,
     private messagesService: MessagesService,
     private ratingsService: Ratings,
@@ -209,6 +220,11 @@ export class Negocio implements OnInit, OnDestroy {
 
       const storedId = this.activeEstablishmentService.getEstablishmentId();
       console.log(`[Negocio] Active Establishment ID from storage: ${storedId}`);
+
+      if (this.isWorker) {
+        this.initializeWorkerContext(storedId);
+        return;
+      }
       
       if (!storedId) {
         console.warn('[Negocio] No establishment ID found in storage. Redirecting home.');
@@ -230,6 +246,31 @@ export class Negocio implements OnInit, OnDestroy {
     if (requestedTab === 'suscripcion') {
       this.activeTab = 'suscripcion';
     }
+  }
+
+  private initializeWorkerContext(storedId: number | null): void {
+    this.workersService.getMyWorkerProfile().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (worker) => {
+        this.currentWorkerId = worker.trabajador_id;
+        const workerEstablishmentId = worker.establecimiento_id;
+
+        if (!storedId || storedId !== workerEstablishmentId) {
+          this.activeEstablishmentService.setEstablishmentId(workerEstablishmentId);
+        }
+
+        if (!this.establishmentId || this.establishmentId !== workerEstablishmentId) {
+          console.log(`[Negocio] Worker context detected: establishment ${workerEstablishmentId}, worker ${worker.trabajador_id}`);
+          this.resetState();
+          this.establishmentId = workerEstablishmentId;
+          this.selectedChatDate = this.todayStr;
+          this.loadEstablishment();
+        }
+      },
+      error: () => {
+        this.errorMessage = 'No se pudo resolver el negocio del trabajador.';
+        this.router.navigate(['/app/home']);
+      },
+    });
   }
 
   private resetState(): void {
@@ -282,7 +323,10 @@ export class Negocio implements OnInit, OnDestroy {
 
   private loadTabData(tab: TabId): void {
     if (tab === 'servicios') this.loadServices();
-    else if (tab === 'horarios') this.loadAgendas();
+    else if (tab === 'horarios') {
+      this.loadAgendas();
+      this.loadSpecialClosures();
+    }
     else if (tab === 'calendario') this.loadAppointments();
     else if (tab === 'mensajes') this.loadMessagesTab();
     else if (tab === 'resenas') this.loadRatings();
@@ -747,6 +791,7 @@ export class Negocio implements OnInit, OnDestroy {
   }
 
   trackByServiceId(_: number, s: BusinessService): number { return s.servicio_id; }
+  trackBySpecialClosureId(_: number, closure: SpecialClosure): number { return closure.cierre_id; }
 
   // ─── AGENDAS / HORARIOS ──────────────────────────────────────────────────
 
@@ -758,6 +803,54 @@ export class Negocio implements OnInit, OnDestroy {
     ).subscribe({
       next: (agendas) => { this.agendas = agendas; },
       error: (err) => { this.errorMessage = err?.error?.detail || 'No se pudieron cargar los horarios.'; },
+    });
+  }
+
+  private loadSpecialClosures(): void {
+    this.isLoadingSpecialClosures = true;
+    this.specialClosuresService.getByEstablishment(this.establishmentId).pipe(
+      finalize(() => { this.isLoadingSpecialClosures = false; this.cdr.markForCheck(); }),
+    ).subscribe({
+      next: (closures) => { this.specialClosures = closures; },
+      error: (err) => { this.errorMessage = err?.error?.detail || 'No se pudieron cargar los cierres especiales.'; },
+    });
+  }
+
+  createSpecialClosure(): void {
+    if (!this.specialClosureForm.fecha) {
+      this.errorMessage = 'Selecciona una fecha para el cierre especial.';
+      return;
+    }
+
+    this.isSavingSpecialClosure = true;
+    this.clearMessages();
+    const payload: SpecialClosureCreate = {
+      establecimiento_id: this.establishmentId,
+      fecha: this.specialClosureForm.fecha,
+      motivo: this.specialClosureForm.motivo.trim() || null,
+    };
+
+    this.specialClosuresService.create(payload).pipe(
+      finalize(() => { this.isSavingSpecialClosure = false; this.cdr.markForCheck(); }),
+    ).subscribe({
+      next: () => {
+        this.successMessage = 'Cierre especial guardado.';
+        this.specialClosureForm = { fecha: '', motivo: '' };
+        this.loadSpecialClosures();
+      },
+      error: (err) => { this.errorMessage = err?.error?.detail || 'No se pudo guardar el cierre especial.'; },
+    });
+  }
+
+  deleteSpecialClosure(closureId: number): void {
+    this.clearMessages();
+    this.specialClosuresService.delete(closureId).subscribe({
+      next: () => {
+        this.successMessage = 'Cierre especial eliminado.';
+        this.loadSpecialClosures();
+        this.cdr.markForCheck();
+      },
+      error: (err) => { this.errorMessage = err?.error?.detail || 'No se pudo eliminar el cierre especial.'; },
     });
   }
 
@@ -937,9 +1030,15 @@ export class Negocio implements OnInit, OnDestroy {
     
     // Si es trabajador, el servicio automáticamente le traerá sus citas (filtramos en backend)
     // Pero si es dueño y no hay worker seleccionado, traemos todas.
-    const workerFilter = this.isWorker ? null : this.selectedWorkerId;
+    const workerFilter = this.isWorker ? this.currentWorkerId : this.selectedWorkerId;
     
-    this.appointmentsService.getByEstablishment(this.establishmentId, workerFilter).pipe(
+    this.businessServicesApi.getByEstablishment(this.establishmentId).pipe(
+      map((services) => new Set((services ?? []).map((service) => service.servicio_id))),
+      switchMap((serviceIds) => this.appointmentsService.getByEstablishment(this.establishmentId, workerFilter).pipe(
+        map((appts) => (Array.isArray(appts) ? appts.filter((appt) => serviceIds.has(appt.servicio_id)) : [])),
+      )),
+      // Si falla la carga de servicios, usamos el fallback del backend para no bloquear la UI.
+      catchError(() => this.appointmentsService.getByEstablishment(this.establishmentId, workerFilter)),
       finalize(() => { 
         this.isLoadingAppointments = false; 
         this.cdr.markForCheck(); 
@@ -970,7 +1069,18 @@ export class Negocio implements OnInit, OnDestroy {
   get filteredChatAppointments(): Appointment[] {
     return this.appointments.filter(a => {
       const matchesStatus = this.selectedChatStatus === 'ALL' || a.estado === this.selectedChatStatus;
-      const matchesDate = this.selectedChatDate === 'ALL' || a.fecha === this.selectedChatDate;
+      let matchesDate = false;
+        
+      if (this.selectedChatDate === 'ALL') {
+        matchesDate = true;
+      } else if (this.selectedChatDate === 'HOY') {
+        matchesDate = a.fecha === this.todayStr;
+      } else if (this.selectedChatDate === 'ANTERIORES') {
+        matchesDate = a.fecha < this.todayStr;
+      } else if (this.selectedChatDate === 'POSTERIORES') {
+        matchesDate = a.fecha > this.todayStr;
+      }
+        
       return matchesStatus && matchesDate;
     });
   }
