@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { first, timeout, catchError, of, Subscription } from 'rxjs';
 
 import { Alert } from '../../shared/alert/alert';
@@ -26,6 +26,7 @@ export class NotificationsPage implements OnInit, OnDestroy {
 
   private readonly notificationsService = inject(NotificationsService);
   private readonly pushSubscriptionsService = inject(PushSubscriptionsService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   get canEnablePushNotifications(): boolean {
     return this.pushSubscriptionsService.isBrowserPushSupported();
@@ -54,12 +55,6 @@ export class NotificationsPage implements OnInit, OnDestroy {
       return;
     }
 
-    // Si ya tenemos permiso concedido nativamente, mostramos estado activo preventivamente
-    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      console.log('[Notifications] Permiso ya concedido nativamente.');
-      this.isSubscribed = true;
-    }
-
     // Consultamos al SW con un timeout un poco más generoso
     this.subCheck = this.pushSubscriptionsService.getCurrentSubscription()
       .pipe(
@@ -83,9 +78,11 @@ export class NotificationsPage implements OnInit, OnDestroy {
           console.log('[Notifications] Resultado final de suscripción SW:', sub ? 'Existe' : 'No existe (null)');
           this.isSubscribed = !!sub;
           this.isCheckingSubscription = false;
+          this.cdr.markForCheck();
         },
         error: () => {
           this.isCheckingSubscription = false;
+          this.cdr.markForCheck();
         }
       });
   }
