@@ -16,7 +16,9 @@ export class Api {
   }
 
   post<T>(endpoint: string, data: any): Observable<T> {
-    return this.http.post<T>(`${this.apiUrl}${endpoint}`, data);
+    const fullUrl = `${this.apiUrl}${endpoint}`;
+    console.log('[Api] POST:', fullUrl);
+    return this.http.post<T>(fullUrl, data);
   }
 
   put<T>(endpoint: string, data: any): Observable<T> {
