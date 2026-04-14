@@ -171,6 +171,13 @@ export class Negocio implements OnInit, OnDestroy {
   errorMessage = '';
   successMessage = '';
 
+  // --- Worker Services ---
+  showWorkerServicesModal = false;
+  selectedWorkerForServices: Worker | null = null;
+  workerServicesIds: number[] = [];
+  isLoadingWorkerServices = false;
+  isSavingWorkerServices = false;
+
   private cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
@@ -331,7 +338,10 @@ export class Negocio implements OnInit, OnDestroy {
     else if (tab === 'mensajes') this.loadMessagesTab();
     else if (tab === 'resenas') this.loadRatings();
     else if (tab === 'suscripcion') this.loadSubscription();
-    else if (tab === 'equipo') this.loadWorkers();
+    else if (tab === 'equipo') {
+      this.loadWorkers();
+      this.loadServices();
+    }
     
     // Siempre cargamos trabajadores si estamos en calendario
     if (tab === 'calendario') this.loadWorkers();
@@ -1415,6 +1425,70 @@ export class Negocio implements OnInit, OnDestroy {
   private clearMessages(): void {
     this.errorMessage = '';
     this.successMessage = '';
+  }
+
+  // ─── WORKER SERVICES ────────────────────────────────────────────────────
+
+  openWorkerServices(worker: Worker): void {
+    console.log('[WorkerServices] Abriendo servicios para trabajador:', worker.trabajador_id, worker.nombre);
+    this.selectedWorkerForServices = worker;
+    this.showWorkerServicesModal = true;
+    this.isLoadingWorkerServices = true;
+    this.workerServicesIds = [];
+    this.clearMessages();
+
+    console.log('[WorkerServices] Llamando a GET /workers/' + worker.trabajador_id + '/services');
+    this.workersService.getWorkerServices(worker.trabajador_id).subscribe({
+      next: (svs) => {
+        console.log('[WorkerServices] Servicios recibidos:', svs);
+        this.workerServicesIds = svs.map(s => s.servicio_id);
+        this.isLoadingWorkerServices = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('[WorkerServices] Error al cargar servicios:', err);
+        this.errorMessage = 'No se pudieron cargar los servicios del trabajador.';
+        this.isLoadingWorkerServices = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  toggleWorkerService(serviceId: number): void {
+    const idx = this.workerServicesIds.indexOf(serviceId);
+    if (idx > -1) {
+      this.workerServicesIds.splice(idx, 1);
+    } else {
+      this.workerServicesIds.push(serviceId);
+    }
+  }
+
+  saveWorkerServices(): void {
+    if (!this.selectedWorkerForServices) return;
+    this.isSavingWorkerServices = true;
+    this.clearMessages();
+
+    console.log('[WorkerServices] Guardando cambios para trabajador:', this.selectedWorkerForServices.trabajador_id);
+    console.log('[WorkerServices] Nuevos IDs de servicio:', this.workerServicesIds);
+
+    this.workersService.setWorkerServices(
+      this.selectedWorkerForServices.trabajador_id, 
+      this.workerServicesIds
+    ).subscribe({
+      next: () => {
+        console.log('[WorkerServices] Guardado exitoso');
+        this.successMessage = 'Servicios actualizados para ' + this.selectedWorkerForServices?.nombre;
+        this.showWorkerServicesModal = false;
+        this.isSavingWorkerServices = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('[WorkerServices] Error al guardar servicios:', err);
+        this.errorMessage = err?.error?.detail || 'No se pudieron guardar los servicios.';
+        this.isSavingWorkerServices = false;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   goBack(): void { this.router.navigate(['/app/home']); }

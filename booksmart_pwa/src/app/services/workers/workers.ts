@@ -50,4 +50,12 @@ export class Workers {
   delete(id: number): Observable<any> {
     return this.api.delete(`${this.collectionPath}${id}`);
   }
+
+  getWorkerServices(workerId: number): Observable<any[]> {
+    return this.api.get<any[]>(`${this.collectionPath}${workerId}/services`);
+  }
+
+  setWorkerServices(workerId: number, serviceIds: number[]): Observable<any> {
+    return this.api.post(`${this.collectionPath}${workerId}/services`, serviceIds);
+  }
 }

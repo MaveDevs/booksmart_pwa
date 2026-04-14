@@ -352,31 +352,40 @@
 
         <!-- Calendar grid -->
         <section class="card">
-          <div class="calendar-nav">
-            <button class="btn-nav-month" type="button" (click)="prevMonth()">‹</button>
-            <h2 class="calendar-month-label">{{ calendarMonthLabel | titlecase }}</h2>
-            <button class="btn-nav-month" type="button" (click)="nextMonth()">›</button>
+          <div class="calendar-container">
+            <div class="calendar-nav">
+              <button class="btn-nav-month" type="button" (click)="prevMonth()">‹</button>
+              <h2 class="calendar-month-label">{{ calendarMonthLabel | titlecase }}</h2>
+              <button class="btn-nav-month" type="button" (click)="nextMonth()">›</button>
+            </div>
+            <div class="calendar-weekdays">
+              <span>Lun</span><span>Mar</span><span>Mié</span>
+              <span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+            </div>
+            <div class="calendar-grid">
+              <button
+                *ngFor="let day of calendarDays; let i = index"
+                class="calendar-day"
+                type="button"
+                [class.empty]="!day"
+                [class.today]="day !== null && isToday(day)"
+                [class.selected]="day !== null && isSelectedDay(day)"
+                [class.has-appointments]="day !== null && getAppointmentsForDay(day).length > 0"
+                [disabled]="!day"
+                (click)="day && selectDay(day)">
+                <span *ngIf="day">{{ day.getDate() }}</span>
+                <span class="appt-dot" *ngIf="day && getAppointmentsForDay(day).length > 0"></span>
+              </button>
+            </div>
+
+            <!-- Loading Overlay -->
+            <div class="calendar-loading-overlay" *ngIf="isLoadingAppointments">
+              <div class="loader-content">
+                <i class="bi bi-arrow-repeat rotate-icon"></i>
+                <p>Cargando citas...</p>
+              </div>
+            </div>
           </div>
-          <div class="calendar-weekdays">
-            <span>Lun</span><span>Mar</span><span>Mié</span>
-            <span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
-          </div>
-          <div class="calendar-grid">
-            <button
-              *ngFor="let day of calendarDays; let i = index"
-              class="calendar-day"
-              type="button"
-              [class.empty]="!day"
-              [class.today]="day !== null && isToday(day)"
-              [class.selected]="day !== null && isSelectedDay(day)"
-              [class.has-appointments]="day !== null && getAppointmentsForDay(day).length > 0"
-              [disabled]="!day"
-              (click)="day && selectDay(day)">
-              <span *ngIf="day">{{ day.getDate() }}</span>
-              <span class="appt-dot" *ngIf="day && getAppointmentsForDay(day).length > 0"></span>
-            </button>
-          </div>
-          <p *ngIf="isLoadingAppointments" class="hint">Cargando citas...</p>
         </section>
 
         <!-- Day appointments -->
@@ -465,7 +474,7 @@
         </div>
       </section>
 
-      <section class="card messages-layout">
+      <section class="card messages-layout" [class.has-selection]="!!selectedChatAppointment">
         <aside class="messages-sidebar">
           <div class="section-head compact">
             <h2>Conversaciones</h2>
@@ -491,6 +500,9 @@
         <div class="messages-panel">
           <ng-container *ngIf="selectedChatAppointment; else noChatSelection">
             <div class="messages-panel-header">
+              <button class="btn-back-chat" (click)="selectedChatAppointment = null">
+                <i class="bi bi-chevron-left"></i>
+              </button>
               <div>
                 <h2>Chat con {{ selectedChatAppointment.cliente_nombre || 'Cliente' }}</h2>
                 <p class="hint">
@@ -672,6 +684,9 @@
                 <p class="email" *ngIf="worker.email"><i class="bi bi-envelope"></i> {{ worker.email }}</p>
               </div>
               <div class="worker-actions">
+                <button class="btn-action-icon" (click)="openWorkerServices(worker)" title="Gestionar Servicios">
+                  <i class="bi bi-briefcase"></i>
+                </button>
                 <button class="btn-action-icon" (click)="startEditWorker(worker)" title="Editar">
                   <i class="bi bi-pencil-square"></i>
                 </button>
@@ -689,6 +704,44 @@
     </div>
 
   </ng-container>
+  
+  <!-- Modal: Worker Services -->
+  <div class="modal-backdrop" *ngIf="showWorkerServicesModal" (click)="showWorkerServicesModal = false"></div>
+  <div class="modal" *ngIf="showWorkerServicesModal && selectedWorkerForServices" role="dialog" aria-modal="true">
+    <button class="modal-close-btn" type="button" (click)="showWorkerServicesModal = false">
+      <i class="bi bi-x"></i>
+    </button>
+    <div class="modal-header">
+      <h3>Servicios de {{ selectedWorkerForServices.nombre }}</h3>
+      <p class="hint">Marca los servicios que este profesional puede realizar.</p>
+    </div>
+    <div class="modal-body">
+      <div class="loading-state" *ngIf="isLoadingWorkerServices">
+        <i class="bi bi-arrow-repeat rotate-icon"></i> Cargando...
+      </div>
+      <div class="worker-services-list" *ngIf="!isLoadingWorkerServices">
+        <div class="service-checkbox-item" *ngFor="let service of services">
+          <label class="checkbox-container">
+            <input 
+              type="checkbox" 
+              [checked]="workerServicesIds.includes(service.servicio_id)"
+              (change)="toggleWorkerService(service.servicio_id)">
+            <span class="checkmark"></span>
+            <div class="service-meta">
+              <strong>{{ service.nombre }}</strong>
+              <span>{{ service.duracion }} min · ${{ service.precio }}</span>
+            </div>
+          </label>
+        </div>
+        <p class="hint" *ngIf="services.length === 0">Primero debes crear servicios en la pestaña de Servicios.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary full-width" [disabled]="isSavingWorkerServices" (click)="saveWorkerServices()">
+        {{ isSavingWorkerServices ? 'Guardando...' : 'Guardar Especialidades' }}
+      </button>
+    </div>
+  </div>
 
   <!-- Confirm: delete service -->
   <app-confirm-modal
