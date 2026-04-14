@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { first, timeout, catchError, of, Subscription } from 'rxjs';
+import { first, timeout, catchError, of, Subscription, from, map } from 'rxjs';
 
 import { Alert } from '../../shared/alert/alert';
 import { NotificationsService, AppNotification } from '../../services/notifications/notifications';
@@ -55,27 +55,21 @@ export class NotificationsPage implements OnInit, OnDestroy {
       return;
     }
 
-    // Consultamos al SW con un timeout un poco más generoso
-    this.subCheck = this.pushSubscriptionsService.getCurrentSubscription()
+    // Consultamos al SW usando la API nativa para ser más robustos que SwPush en el arranque
+    const nativeSub$ = from(navigator.serviceWorker.ready.then(reg => reg.pushManager.getSubscription()));
+
+    this.subCheck = nativeSub$
       .pipe(
-        timeout(5000), // 5s es más razonable para que el worker despierte
+        timeout(5000), 
         catchError((err) => {
-          console.warn('[Notifications] Timeout o error consultando suscripción SW:', err);
-          
-          // Debug extra: ver si el worker está siquiera registrado
-          if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistration().then(reg => {
-              console.log('[Notifications] Estado del SW:', reg ? `Existe (${reg.active ? 'Activo' : 'En espera'})` : 'No registrado');
-            });
-          }
-          
+          console.warn('[Notifications] Timeout o error consultando suscripción nativa:', err);
           return of(null);
         }),
         first()
       )
       .subscribe({
         next: (sub) => {
-          console.log('[Notifications] Resultado final de suscripción SW:', sub ? 'Existe' : 'No existe (null)');
+          console.log('[Notifications] Resultado final de suscripción:', sub ? 'Existe' : 'No existe (null)');
           this.isSubscribed = !!sub;
           this.isCheckingSubscription = false;
           this.cdr.markForCheck();
