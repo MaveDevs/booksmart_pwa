@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Auth } from '../../../services/auth/auth';
 import { ConfirmModal } from '../../../shared/confirm-modal/confirm-modal';
@@ -7,10 +7,13 @@ import { Theme } from '../../../services/theme/theme';
 import { NotificationsService } from '../../../services/notifications/notifications';
 import { RealtimeService } from '../../../services/realtime/realtime';
 
+import { NotificationPopover } from '../notification-popover/notification-popover';
+
+
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, ConfirmModal],
+  imports: [CommonModule, RouterLink, RouterLinkActive, ConfirmModal, NotificationPopover],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss'
 })
@@ -18,6 +21,7 @@ export class Navbar implements OnInit, OnDestroy {
   showLogoutConfirmModal = false;
   readonly isDarkTheme: Theme['isDarkTheme'];
   unreadNotificationsCount = 0;
+  showNotificationsPopover = false;
 
   constructor(
     private router: Router,
@@ -25,6 +29,7 @@ export class Navbar implements OnInit, OnDestroy {
     private themeService: Theme,
     private notificationsService: NotificationsService,
     private realtimeService: RealtimeService,
+    private cdr: ChangeDetectorRef,
   ) {
     this.isDarkTheme = this.themeService.isDarkTheme;
   }
@@ -35,9 +40,16 @@ export class Navbar implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.realtimeService.connect(this.authService.getToken());
-    this.notificationsService.refreshUnreadCount().subscribe();
+    
+    // Cargamos el conteo inicial con un pequeño retraso para asegurar que los componentes estén listos
+    this.notificationsService.refreshUnreadCount().subscribe({
+      error: (err) => console.warn('[Navbar] No se pudo refrescar el conteo inicial:', err)
+    });
+
     this.notificationsService.unreadCount$.subscribe((count) => {
       this.unreadNotificationsCount = count;
+      // Forzamos actualización por si el evento vino fuera de la zona de Angular (ej: websockets)
+      this.cdr.detectChanges();
     });
   }
 
@@ -47,6 +59,10 @@ export class Navbar implements OnInit, OnDestroy {
 
   toggleTheme(): void {
     this.themeService.toggleTheme();
+  }
+
+  toggleNotificationsPopover(): void {
+    this.showNotificationsPopover = !this.showNotificationsPopover;
   }
 
   requestLogout(): void {

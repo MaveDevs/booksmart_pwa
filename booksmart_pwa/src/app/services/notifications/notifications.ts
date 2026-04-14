@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, map, tap } from 'rxjs';
+import { BehaviorSubject, Observable, map, tap, timeout, catchError, of } from 'rxjs';
 
 import { Api } from '../api';
 import { RealtimeService, RealtimeNotificationEvent } from '../realtime/realtime';
@@ -54,8 +54,14 @@ export class NotificationsService {
 
   refreshUnreadCount(): Observable<number> {
     return this.getMine().pipe(
+      timeout(5000),
       map((notifications) => notifications.filter((notification) => !notification.leida).length),
       tap((count) => this.unreadCountSubject.next(count)),
+      catchError((err) => {
+        console.warn('[NotificationsService] Error refreshing unread count:', err);
+        // No actualizamos el subject para mantener el último valor conocido o 0
+        return of(this.unreadCountSubject.value);
+      }),
     );
   }
 

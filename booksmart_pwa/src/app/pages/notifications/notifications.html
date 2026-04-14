@@ -12,18 +12,20 @@
       </div>
       
       <div class="hero-action">
-        <div *ngIf="isCheckingSubscription" class="loading-status">
-          Verificando suscripción...
-        </div>
+        <div class="push-config-card">
+          <div class="config-text">
+            <span>Notificaciones Push</span>
+            <p class="status-hint">{{ isSubscribed ? 'Recibiendo alertas en tiempo real' : 'Activa para no perderte de nada' }}</p>
+          </div>
+          
+          <div *ngIf="isCheckingSubscription" class="loading-status">
+            <i class="bi bi-arrow-repeat rotate"></i>
+          </div>
 
-        <button *ngIf="!isSubscribed && !isCheckingSubscription" type="button" class="btn-activate" (click)="enablePushNotifications()" 
-                [disabled]="isRegisteringPush || !canEnablePushNotifications">
-          <span *ngIf="!isRegisteringPush">Activar Notificaciones Push</span>
-          <span *ngIf="isRegisteringPush">Sincronizando...</span>
-        </button>
-        
-        <div *ngIf="isSubscribed && !isCheckingSubscription" class="subscribed-badge">
-          Listo para recibir alertas
+          <label class="switch" *ngIf="!isCheckingSubscription">
+            <input type="checkbox" [checked]="isSubscribed" (change)="togglePush($event)" [disabled]="isRegisteringPush">
+            <span class="slider round"></span>
+          </label>
         </div>
       </div>
     </div>

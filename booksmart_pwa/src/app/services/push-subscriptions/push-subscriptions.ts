@@ -138,6 +138,23 @@ export class PushSubscriptionsService {
     }
   }
 
+  async unregisterCurrentDevice(): Promise<void> {
+    console.log('[PushService] Desregistrando dispositivo...');
+    try {
+      const subscription = await firstValueFrom(this.swPush.subscription);
+      if (subscription) {
+        console.log('[PushService] Eliminando suscripción del backend:', subscription.endpoint);
+        await firstValueFrom(this.removeSubscription(subscription.endpoint));
+        console.log('[PushService] Desuscribiendo del Push Service del navegador...');
+        await subscription.unsubscribe();
+        console.log('[PushService] Dispositivo desregistrado con éxito.');
+      }
+    } catch (err) {
+      console.error('[PushService] Error al desregistrar dispositivo:', err);
+      throw err;
+    }
+  }
+
   removeSubscription(endpoint: string): Observable<void> {
     return this.api.delete<void>(`${this.basePath}?endpoint=${encodeURIComponent(endpoint)}`);
   }

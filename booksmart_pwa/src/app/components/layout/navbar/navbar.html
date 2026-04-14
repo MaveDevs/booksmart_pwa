@@ -11,12 +11,12 @@
       <i class="bi bi-shop"></i>
       <span>Negocios</span>
     </a>
-    <a routerLink="/app/notifications" routerLinkActive="active" class="nav-item nav-badge-link">
+    <button type="button" (click)="toggleNotificationsPopover()" class="nav-item nav-badge-link" [class.active]="showNotificationsPopover">
       <i class="bi bi-bell"></i>
       <span>Notificaciones</span>
       <span class="nav-badge" *ngIf="unreadNotificationsCount > 0">{{ unreadNotificationsCount > 9 ? '9+' :
         unreadNotificationsCount }}</span>
-    </a>
+    </button>
     <a *ngIf="isOwner" routerLink="/app/subscriptions" routerLinkActive="active" class="nav-item">
       <i class="bi bi-gem"></i>
       <span>Suscripciones</span>
@@ -36,3 +36,5 @@
   [message]="'¿Seguro que deseas cerrar sesión ahora?'" [confirmText]="'Sí, salir'" [cancelText]="'Cancelar'"
   (confirm)="confirmLogout()" (cancel)="cancelLogout()">
 </app-confirm-modal>
+
+<app-notification-popover [show]="showNotificationsPopover" (close)="showNotificationsPopover = false"></app-notification-popover>

@@ -56,11 +56,12 @@ export class NotificationsPage implements OnInit, OnDestroy {
     }
 
     // Consultamos al SW usando la API nativa para ser más robustos que SwPush en el arranque
+    // Añadimos un timeout más agresivo para evitar que se quede 'colgado' en entornos de desarrollo sin SW
     const nativeSub$ = from(navigator.serviceWorker.ready.then(reg => reg.pushManager.getSubscription()));
 
     this.subCheck = nativeSub$
       .pipe(
-        timeout(5000), 
+        timeout(3000), // Reducido a 3s para mejor UX si falla
         catchError((err) => {
           console.warn('[Notifications] Timeout o error consultando suscripción nativa:', err);
           return of(null);
@@ -72,11 +73,11 @@ export class NotificationsPage implements OnInit, OnDestroy {
           console.log('[Notifications] Resultado final de suscripción:', sub ? 'Existe' : 'No existe (null)');
           this.isSubscribed = !!sub;
           this.isCheckingSubscription = false;
-          this.cdr.markForCheck();
+          this.cdr.detectChanges(); // Forzamos detección inmediata
         },
         error: () => {
           this.isCheckingSubscription = false;
-          this.cdr.markForCheck();
+          this.cdr.detectChanges();
         }
       });
   }
@@ -89,18 +90,26 @@ export class NotificationsPage implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.notificationsService.loadMine().subscribe({
-      next: (notifications) => {
-        this.notifications = [...notifications].sort(
-          (left, right) => new Date(right.fecha_envio).getTime() - new Date(left.fecha_envio).getTime(),
-        );
-        this.isLoading = false;
-      },
-      error: (error) => {
-        this.errorMessage = error?.error?.detail || 'No se pudieron cargar tus notificaciones.';
-        this.isLoading = false;
-      },
-    });
+    this.notificationsService.loadMine()
+      .pipe(
+        timeout(8000),
+        catchError(err => {
+          console.error('[Notifications] Error loading notifications:', err);
+          this.errorMessage = err?.error?.detail || 'No se pudieron cargar tus notificaciones.';
+          this.isLoading = false;
+          this.cdr.detectChanges();
+          return of([]);
+        })
+      )
+      .subscribe({
+        next: (notifications) => {
+          this.notifications = [...notifications].sort(
+            (left, right) => new Date(right.fecha_envio).getTime() - new Date(left.fecha_envio).getTime(),
+          );
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   markAsRead(notification: AppNotification): void {
@@ -120,18 +129,31 @@ export class NotificationsPage implements OnInit, OnDestroy {
     });
   }
 
-  async enablePushNotifications(): Promise<void> {
+  async togglePush(event: Event): Promise<void> {
+    const checked = (event.target as HTMLInputElement).checked;
     this.isRegisteringPush = true;
     this.errorMessage = '';
     this.successMessage = '';
+    this.cdr.detectChanges();
 
     try {
-      await this.pushSubscriptionsService.registerCurrentDevice();
-      this.successMessage = 'Notificaciones push activadas en este dispositivo.';
+      if (checked) {
+        await this.pushSubscriptionsService.registerCurrentDevice();
+        this.successMessage = 'Notificaciones push activadas en este dispositivo.';
+      } else {
+        await this.pushSubscriptionsService.unregisterCurrentDevice();
+        this.successMessage = 'Notificaciones push desactivadas.';
+      }
+      this.isSubscribed = checked;
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : 'No se pudieron activar las notificaciones push.';
+      console.error('Error toggling push:', error);
+      this.errorMessage = error instanceof Error ? error.message : 'No se pudo cambiar el estado de las notificaciones.';
+      // Revert visual state
+      (event.target as HTMLInputElement).checked = !checked;
+      this.isSubscribed = !checked;
     } finally {
       this.isRegisteringPush = false;
+      this.cdr.detectChanges();
     }
   }
 

@@ -1,0 +1,59 @@
+<div class="popover-overlay" *ngIf="show" (click)="onClose()">
+  <div class="popover-content" (click)="stopPropagation($event)">
+    <header class="popover-header">
+      <div class="header-main">
+        <h3>Notificaciones</h3>
+        <button class="btn-close" (click)="onClose()">✕</button>
+      </div>
+      
+      <div class="push-toggle-bar">
+        <span>Notificaciones Push</span>
+        <label class="switch">
+          <input type="checkbox" [checked]="isPushEnabled" (change)="togglePush($event)" [disabled]="isTogglingPush">
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </header>
+
+    <div class="popover-body">
+      <div *ngIf="isLoading" class="loading-state">
+        <i class="bi bi-arrow-repeat rotate"></i>
+        <p>Cargando...</p>
+      </div>
+
+      <div *ngIf="!isLoading && notifications.length === 0" class="empty-state">
+        <i class="bi bi-bell-slash"></i>
+        <p>No tienes notificaciones</p>
+      </div>
+
+      <div class="notification-list" *ngIf="!isLoading && notifications.length > 0">
+        <div 
+          class="notification-item" 
+          *ngFor="let item of notifications" 
+          [class.unread]="!item.leida"
+          (click)="markAsRead(item)"
+        >
+          <div class="item-icon" [ngClass]="item.tipo | lowercase">
+            <i class="bi" [ngClass]="{
+              'bi-info-circle': item.tipo === 'INFO',
+              'bi-exclamation-triangle': item.tipo === 'ALERTA',
+              'bi-calendar-check': item.tipo === 'RECORDATORIO'
+            }"></i>
+          </div>
+          <div class="item-content">
+            <p class="message">{{ item.mensaje }}</p>
+            <time>{{ item.fecha_envio | date:'shortTime' }}</time>
+          </div>
+          <div class="unread-dot" *ngIf="!item.leida"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="popover-footer">
+      <a routerLink="/app/notifications" (click)="onClose()" class="btn-all">
+        Ver todas las notificaciones
+        <i class="bi bi-arrow-right"></i>
+      </a>
+    </footer>
+  </div>
+</div>
