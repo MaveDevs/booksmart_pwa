@@ -691,6 +691,16 @@
   .worker-actions {
     display: flex;
     gap: 0.5rem;
+
+    .btn-messages {
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.6rem;
+      flex-shrink: 0;
+      
+      i {
+        font-size: 0.9rem;
+      }
+    }
   }
 }
 
@@ -1757,8 +1767,8 @@ label {
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(31, 191, 159, 0.2);
-  flex: 1;
-  min-width: 120px;
+  width: auto;
+  min-width: auto;
 
   &:hover:not(:disabled) {
     background: var(--color-primary-strong);
@@ -1788,8 +1798,8 @@ label {
   line-height: 1.5;
   cursor: pointer;
   transition: all 0.2s ease;
-  flex: 1;
-  min-width: 120px;
+  width: auto;
+  min-width: auto;
 
   &:hover:not(:disabled) {
     background: var(--color-surface);
@@ -1819,8 +1829,16 @@ label {
   line-height: 1.5;
   cursor: pointer;
   transition: all 0.2s ease;
-  flex: 1;
-  min-width: 120px;
+  width: auto;
+  min-width: auto;
+}
+
+.modal-actions, .actions {
+  .btn-primary, .btn-secondary, .btn-danger {
+    flex: 1;
+    min-width: 120px;
+  }
+}
 
   &:hover:not(:disabled) {
     background: var(--color-danger);
