@@ -21,18 +21,53 @@
   <section *ngIf="establishments.length > 0" class="establishments-grid">
     <article class="establishment-card" *ngFor="let establishment of establishments; trackBy: trackByEstablishmentId">
       <div class="card-header">
-        <h2>{{ establishment.nombre }}</h2>
-        <span class="badge" [class.inactive]="!establishment.activo">
-          {{ establishment.activo ? 'Activo' : 'Inactivo' }}
-        </span>
+        <div class="header-info">
+          <h2>{{ establishment.nombre }}</h2>
+          <span class="plan-label">{{ getPlanName(establishment.establecimiento_id) }}</span>
+        </div>
+        <div class="header-badges">
+          <span class="badge" [class.inactive]="!establishment.activo">
+            {{ establishment.activo ? 'Establecimiento Activo' : 'Inactivo' }}
+          </span>
+          <span class="badge" [ngClass]="getPlanBadgeClass(establishment.establecimiento_id)">
+            <i class="bi bi-star-fill" *ngIf="isPremium(establishment.establecimiento_id)"></i>
+            Suscripción OK
+          </span>
+        </div>
       </div>
 
       <p class="description" *ngIf="establishment.descripcion">{{ establishment.descripcion }}</p>
       <p class="description muted" *ngIf="!establishment.descripcion">Sin descripción</p>
 
-      <button type="button" class="btn-primary" (click)="goToSubscription(establishment.establecimiento_id)">
+      <button type="button" class="btn-primary" (click)="goToSubscription(establishment.establecimiento_id, establishment.nombre)">
         Gestionar suscripción
       </button>
     </article>
   </section>
+
+  <!-- Management Modal -->
+  <div class="modal-backdrop" *ngIf="showManageModal" (click)="closeManageModal()"></div>
+  <div class="modal manage-modal" *ngIf="showManageModal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div class="header-text">
+        <h3>Suscripción de {{ selectedEstablishmentName }}</h3>
+        <p>Administra el plan activo para este establecimiento</p>
+      </div>
+      <button class="modal-close-btn" type="button" (click)="closeManageModal()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <app-current-subscription [establishmentId]="selectedEstablishmentId!"></app-current-subscription>
+      <app-plans-list 
+        [establishmentId]="selectedEstablishmentId!" 
+        [currentSubscriptionPlanId]="getCurrentPlanId(selectedEstablishmentId!)">
+      </app-plans-list>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" type="button" (click)="closeManageModal()">Cerrar</button>
+    </div>
+  </div>
 </div>

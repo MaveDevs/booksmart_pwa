@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { SwPush } from '@angular/service-worker';
-import { firstValueFrom, Observable } from 'rxjs';
+import { firstValueFrom, Observable, of } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { Api } from '../api';
@@ -143,6 +143,9 @@ export class PushSubscriptionsService {
   }
 
   getCurrentSubscription(): Observable<PushSubscription | null> {
+    if (!this.swPush.isEnabled) {
+      return of(null);
+    }
     return this.swPush.subscription;
   }
 }

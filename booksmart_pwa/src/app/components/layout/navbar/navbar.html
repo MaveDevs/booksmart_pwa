@@ -1,52 +1,38 @@
 <nav class="nav-wrapper">
-    <div class="brand">
-      <span class="brand-logo-shell">
-        <img src="assets/img/booksmartlogo.png" alt="Booksmart" class="brand-logo">
-      </span>
-      <span class="brand-text">Booksmart</span>
-    </div>
+  <div class="brand">
+    <span class="brand-logo-shell">
+      <img src="assets/img/booksmartlogo.png" alt="Booksmart" class="brand-logo">
+    </span>
+    <span class="brand-text">Booksmart</span>
+  </div>
 
-    <div class="nav-links">
-      <a
-        routerLink="/app/home"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="nav-item">
-        Mis Negocios
-      </a>
-      <a
-        routerLink="/app/notifications"
-        routerLinkActive="active"
-        class="nav-item nav-badge-link">
-        <span>Notificaciones</span>
-        <span class="nav-badge" *ngIf="unreadNotificationsCount > 0">{{ unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount }}</span>
-      </a>
-      <a
-        *ngIf="isOwner"
-        routerLink="/app/subscriptions"
-        routerLinkActive="active"
-        class="nav-item">
-        Suscripciones
-      </a>
-      <button
-        class="theme-btn"
-        type="button"
-        [class.active]="isDarkTheme()"
-        (click)="toggleTheme()">
-        Tema
-      </button>
-      <button class="logout-btn" type="button" (click)="requestLogout()">
-        Salir
-      </button>
-    </div>
-  </nav>
+  <div class="nav-links">
+    <a routerLink="/app/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">
+      <i class="bi bi-shop"></i>
+      <span>Negocios</span>
+    </a>
+    <a routerLink="/app/notifications" routerLinkActive="active" class="nav-item nav-badge-link">
+      <i class="bi bi-bell"></i>
+      <span>Notificaciones</span>
+      <span class="nav-badge" *ngIf="unreadNotificationsCount > 0">{{ unreadNotificationsCount > 9 ? '9+' :
+        unreadNotificationsCount }}</span>
+    </a>
+    <a *ngIf="isOwner" routerLink="/app/subscriptions" routerLinkActive="active" class="nav-item">
+      <i class="bi bi-gem"></i>
+      <span>Suscripciones</span>
+    </a>
+    <button class="theme-btn" type="button" [class.active]="isDarkTheme()" (click)="toggleTheme()">
+      <i class="bi bi-palette"></i>
+      <span>Tema</span>
+    </button>
+    <button class="logout-btn" type="button" (click)="requestLogout()">
+      <i class="bi bi-box-arrow-right"></i>
+      <span>Salir</span>
+    </button>
+  </div>
+</nav>
 
-  <app-confirm-modal
-    [show]="showLogoutConfirmModal"
-    [title]="'Cerrar sesión'"
-    [message]="'¿Seguro que deseas cerrar sesión ahora?'"
-    [confirmText]="'Sí, salir'"
-    [cancelText]="'Cancelar'"
-    (confirm)="confirmLogout()"
-    (cancel)="cancelLogout()">
-  </app-confirm-modal>
+<app-confirm-modal [show]="showLogoutConfirmModal" [title]="'Cerrar sesión'"
+  [message]="'¿Seguro que deseas cerrar sesión ahora?'" [confirmText]="'Sí, salir'" [cancelText]="'Cancelar'"
+  (confirm)="confirmLogout()" (cancel)="cancelLogout()">
+</app-confirm-modal>

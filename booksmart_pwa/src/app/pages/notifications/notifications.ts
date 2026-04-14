@@ -45,21 +45,48 @@ export class NotificationsPage implements OnInit, OnDestroy {
   }
 
   checkSubscriptionStatus(): void {
+    console.log('[Notifications] Iniciando verificación de suscripción...');
+    
+    if (!this.pushSubscriptionsService.isBrowserPushSupported()) {
+      console.warn('[Notifications] Push no soportado:', this.pushSubscriptionsService.getUnsupportedReason());
+      this.isCheckingSubscription = false;
+      this.isSubscribed = false;
+      return;
+    }
+
     // Si ya tenemos permiso concedido nativamente, mostramos estado activo preventivamente
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      console.log('[Notifications] Permiso ya concedido nativamente.');
       this.isSubscribed = true;
     }
 
-    // Consultamos al SW con un timeout para no quedarnos bloqueados
+    // Consultamos al SW con un timeout un poco más generoso
     this.subCheck = this.pushSubscriptionsService.getCurrentSubscription()
       .pipe(
-        first(),
-        timeout(3000), // Si no responde en 3s, seguimos adelante
-        catchError(() => of(null))
+        timeout(5000), // 5s es más razonable para que el worker despierte
+        catchError((err) => {
+          console.warn('[Notifications] Timeout o error consultando suscripción SW:', err);
+          
+          // Debug extra: ver si el worker está siquiera registrado
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistration().then(reg => {
+              console.log('[Notifications] Estado del SW:', reg ? `Existe (${reg.active ? 'Activo' : 'En espera'})` : 'No registrado');
+            });
+          }
+          
+          return of(null);
+        }),
+        first()
       )
-      .subscribe((sub) => {
-        this.isSubscribed = !!sub;
-        this.isCheckingSubscription = false;
+      .subscribe({
+        next: (sub) => {
+          console.log('[Notifications] Resultado final de suscripción SW:', sub ? 'Existe' : 'No existe (null)');
+          this.isSubscribed = !!sub;
+          this.isCheckingSubscription = false;
+        },
+        error: () => {
+          this.isCheckingSubscription = false;
+        }
       });
   }
 
