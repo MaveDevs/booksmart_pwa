@@ -564,11 +564,17 @@
             <span class="rating-avg">⭐ {{ averageRating }}</span>
             <span class="rating-count">de 5 &nbsp;·&nbsp; {{ ratings.length }} reseñas</span>
           </div>
-          <p *ngIf="ratings.length === 0">Aún no hay reseñas para este negocio.</p>
+          <div class="empty-state" *ngIf="ratings.length === 0">
+            <div class="empty-icon-wrapper">
+              <i class="bi bi-star"></i>
+            </div>
+            <h3>Sin reseñas aún</h3>
+            <p>Las opiniones de tus clientes aparecerán aquí una vez que completen sus citas.</p>
+          </div>
           <div class="ratings-list">
             <article class="rating-item" *ngFor="let rating of ratings; trackBy: trackByRatingId">
               <div class="rating-head">
-                <span>{{ rating.usuario_nombre || 'Usuario #' + rating.usuario_id }}</span>
+                <strong>{{ rating.usuario_nombre || 'Usuario #' + rating.usuario_id }}</strong>
                 <span class="rating-stars">{{ rating.calificacion }}⭐</span>
                 <span class="rating-date" *ngIf="rating.fecha">{{ rating.fecha }}</span>
               </div>
