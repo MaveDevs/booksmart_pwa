@@ -159,10 +159,10 @@ export class Negocio implements OnInit, OnDestroy {
   isLoadingWorkers = false;
   showWorkerForm = false;
   isSubmittingWorker = false;
-  newWorker = { nombre: '', apellido: '', especialidad: '', email: '', contrasena: '' };
+  newWorker = { nombre: '', apellido: '', especialidad: '', email: '', telefono: '', descripcion: '', contrasena: '' };
   
   editingWorkerId: number | null = null;
-  editWorker = { nombre: '', apellido: '', especialidad: '', email: '', contrasena: '' };
+  editWorker = { nombre: '', apellido: '', especialidad: '', email: '', telefono: '', descripcion: '', contrasena: '' };
 
   // --- Suscripción tab ---
   subscription: Subscription | null = null;
@@ -946,6 +946,8 @@ export class Negocio implements OnInit, OnDestroy {
       apellido: worker.apellido,
       especialidad: worker.especialidad || '',
       email: worker.email || '',
+      telefono: worker.telefono || '',
+      descripcion: worker.descripcion || '',
       contrasena: ''
     };
   }
@@ -961,13 +963,19 @@ export class Negocio implements OnInit, OnDestroy {
     }
     this.isSubmittingWorker = true;
     this.clearMessages();
-    this.workersService.update(workerId, {
+
+    // Sanitizamos el payload para no enviar strings vacíos en campos opcionales
+    const payload = {
       nombre: this.editWorker.nombre.trim(),
       apellido: this.editWorker.apellido.trim(),
       especialidad: this.editWorker.especialidad.trim() || undefined,
       email: this.editWorker.email.trim() || undefined,
+      telefono: this.editWorker.telefono.trim() || undefined,
+      descripcion: this.editWorker.descripcion.trim() || undefined,
       contrasena: this.editWorker.contrasena.trim() || undefined
-    }).subscribe({
+    };
+
+    this.workersService.update(workerId, payload).subscribe({
       next: () => {
         this.successMessage = 'Trabajador actualizado.';
         this.editingWorkerId = null;
@@ -1007,14 +1015,24 @@ export class Negocio implements OnInit, OnDestroy {
     }
     this.isSubmittingWorker = true;
     this.clearMessages();
-    this.workersService.create({
+
+    // Sanitizamos el payload para no enviar strings vacíos en campos opcionales (evita 422 en backend)
+    const payload = {
       establecimiento_id: this.establishmentId,
-      ...this.newWorker,
+      nombre: this.newWorker.nombre.trim(),
+      apellido: this.newWorker.apellido.trim(),
+      especialidad: this.newWorker.especialidad.trim() || undefined,
+      email: this.newWorker.email.trim() || undefined,
+      telefono: this.newWorker.telefono.trim() || undefined,
+      descripcion: this.newWorker.descripcion.trim() || undefined,
+      contrasena: this.newWorker.contrasena.trim() || undefined,
       activo: true
-    }).subscribe({
+    };
+
+    this.workersService.create(payload).subscribe({
       next: () => {
         this.successMessage = 'Trabajador registrado correctamente.';
-        this.newWorker = { nombre: '', apellido: '', especialidad: '', email: '', contrasena: '' };
+        this.newWorker = { nombre: '', apellido: '', especialidad: '', email: '', telefono: '', descripcion: '', contrasena: '' };
         this.showWorkerForm = false;
         this.isSubmittingWorker = false;
         this.loadWorkers();

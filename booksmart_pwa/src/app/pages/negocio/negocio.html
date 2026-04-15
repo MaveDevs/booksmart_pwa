@@ -601,8 +601,12 @@
         </div>
 
         <!-- Form: New Worker -->
-        <div class="form-card" *ngIf="showWorkerForm">
-          <h3>Registrar Profesional</h3>
+        <div class="form-card highlight-card" *ngIf="showWorkerForm">
+          <div class="form-card-header">
+            <h3><i class="bi bi-person-plus"></i> Registrar Profesional</h3>
+            <p class="hint">Los campos con * son obligatorios.</p>
+          </div>
+          
           <div class="form-grid">
             <label>
               Nombre *
@@ -617,17 +621,34 @@
               <input class="form-input" [(ngModel)]="newWorker.especialidad" placeholder="Ej. Barbero Senior">
             </label>
             <label>
-              Correo Electrónico
-              <input class="form-input" type="email" [(ngModel)]="newWorker.email" placeholder="Para vincular su acceso">
+              Teléfono
+              <input class="form-input" type="tel" [(ngModel)]="newWorker.telefono" placeholder="Ej. 5512345678">
             </label>
-            <label>
+            
+            <div class="form-divider full-width"><span>Acceso al sistema (Opcional)</span></div>
+            
+            <label class="full-width">
+              Correo Electrónico
+              <input class="form-input" type="email" [(ngModel)]="newWorker.email" placeholder="Para vincular su acceso de usuario">
+              <p class="input-hint">Si ingresas un correo, se creará una cuenta para que el trabajador gestione sus citas.</p>
+            </label>
+            <label class="full-width">
               Contraseña
               <input class="form-input" type="password" [(ngModel)]="newWorker.contrasena" placeholder="Mín. 6 caracteres">
+              <p class="input-hint">Por defecto: WorkerTemp123!</p>
+            </label>
+            
+            <label class="full-width">
+              Descripción Breve
+              <textarea class="form-input" rows="2" [(ngModel)]="newWorker.descripcion" placeholder="Pequeña biografía o descripción de habilidades"></textarea>
             </label>
           </div>
-          <button class="btn-primary" type="button" [disabled]="isSubmittingWorker" (click)="createWorker()">
-            {{ isSubmittingWorker ? 'Registrando...' : 'Registrar Trabajador' }}
-          </button>
+          
+          <div class="form-actions">
+            <button class="btn-primary" type="button" [disabled]="isSubmittingWorker" (click)="createWorker()">
+              <i class="bi bi-check-circle"></i> {{ isSubmittingWorker ? 'Registrando...' : 'Registrar Trabajador' }}
+            </button>
+          </div>
         </div>
 
         <p *ngIf="isLoadingWorkers">Cargando equipo...</p>
@@ -644,11 +665,11 @@
               
               <div class="edit-form-grid">
                 <div class="input-group">
-                  <label>Nombre</label>
+                  <label>Nombre *</label>
                   <input class="form-input" [(ngModel)]="editWorker.nombre">
                 </div>
                 <div class="input-group">
-                  <label>Apellido</label>
+                  <label>Apellido *</label>
                   <input class="form-input" [(ngModel)]="editWorker.apellido">
                 </div>
                 <div class="input-group">
@@ -656,12 +677,20 @@
                   <input class="form-input" [(ngModel)]="editWorker.especialidad">
                 </div>
                 <div class="input-group">
+                  <label>Teléfono</label>
+                  <input class="form-input" [(ngModel)]="editWorker.telefono">
+                </div>
+                <div class="input-group full-width">
                   <label>Correo de Acceso</label>
                   <input class="form-input" [(ngModel)]="editWorker.email">
                 </div>
                 <div class="input-group full-width">
                   <label>Nueva Contraseña (opcional)</label>
                   <input class="form-input" type="password" [(ngModel)]="editWorker.contrasena" placeholder="••••••••">
+                </div>
+                <div class="input-group full-width">
+                  <label>Descripción</label>
+                  <textarea class="form-input" rows="2" [(ngModel)]="editWorker.descripcion"></textarea>
                 </div>
               </div>
 
