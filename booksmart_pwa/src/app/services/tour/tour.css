@@ -1,0 +1,205 @@
+/* ═══════════════════════════════════════════════════════════
+   TOUR OVERLAY & TOOLTIP STYLES
+   Premium glassmorphism-based guided tour UI
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Overlay backdrop ────────────────────────────────────── */
+.tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  cursor: pointer;
+  background: transparent;
+}
+
+/* ─── Highlight ring ──────────────────────────────────────── */
+.tour-highlight {
+  position: fixed;
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(10, 10, 20, 0.75);
+  z-index: 9991;
+  pointer-events: none;
+  border: 2px solid var(--color-primary);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+}
+
+/* ─── Tooltip ─────────────────────────────────────────────── */
+.tour-tooltip {
+  position: fixed;
+  z-index: 9992;
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  background: var(--color-surface, #1a1a2e);
+  border: 1px solid rgba(31, 191, 159, 0.25);
+  border-radius: 16px;
+  padding: 0;
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.45),
+    0 0 40px rgba(31, 191, 159, 0.12);
+  opacity: 0;
+  transition: opacity 0.35s ease, top 0.3s ease, left 0.3s ease;
+  overflow: hidden;
+}
+
+.tour-tooltip[data-position="top"] { }
+.tour-tooltip[data-position="left"] { }
+.tour-tooltip[data-position="right"] { }
+.tour-tooltip[data-position="bottom"] { }
+
+/* Tooltip Header */
+.tour-tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 0;
+}
+
+.tour-tooltip-step {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-primary, #1fbf9f);
+  background: rgba(31, 191, 159, 0.12);
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.tour-tooltip-close {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary, #8892b0);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  line-height: 1;
+}
+.tour-tooltip-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text, #e6f1ff);
+}
+
+/* Tooltip Title */
+.tour-tooltip-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text, #e6f1ff);
+  margin: 10px 16px 4px;
+  line-height: 1.3;
+}
+
+/* Tooltip Description */
+.tour-tooltip-desc {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary, #8892b0);
+  margin: 0 16px 12px;
+  line-height: 1.55;
+}
+
+/* Progress bar */
+.tour-tooltip-progress {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 0 16px 14px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tour-tooltip-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary, #1fbf9f), #4fd1c5);
+  border-radius: 4px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Actions */
+.tour-tooltip-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 16px 14px;
+}
+
+.tour-btn-group {
+  display: flex;
+  gap: 8px;
+}
+
+.tour-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.tour-btn-skip {
+  background: none;
+  color: var(--color-text-secondary, #8892b0);
+  padding: 8px 10px;
+}
+.tour-btn-skip:hover {
+  color: var(--color-text, #e6f1ff);
+  text-decoration: underline;
+}
+
+.tour-btn-prev {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text, #e6f1ff);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.tour-btn-prev:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tour-btn-next {
+  background: linear-gradient(135deg, var(--color-primary, #1fbf9f), #2dd4a8);
+  color: #0a0f1a;
+  font-weight: 700;
+}
+.tour-btn-next:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(31, 191, 159, 0.35);
+}
+
+/* ─── Animations ──────────────────────────────────────────── */
+@keyframes tourFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ─── Responsive ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .tour-tooltip {
+    width: calc(100vw - 24px);
+    left: 12px !important;
+  }
+
+  .tour-tooltip[data-position="top"] { }
+
+  .tour-tooltip-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .tour-btn-group {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .tour-btn-next,
+  .tour-btn-prev {
+    flex: 1;
+  }
+}
