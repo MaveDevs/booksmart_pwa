@@ -128,6 +128,15 @@
   }
 }
 
+/* Demo Section */
+.demo-section {
+  display: block;
+
+  @media (max-width: 1023px) {
+    display: none;
+  }
+}
+
 /* Demo Divider */
 .demo-divider {
   display: flex;

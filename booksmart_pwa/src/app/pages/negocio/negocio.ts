@@ -142,7 +142,7 @@ export class Negocio implements OnInit, OnDestroy {
   isSendingMessage = false;
   messageDraft = '';
   selectedChatStatus: AppointmentStatus | 'ALL' = 'ALL';
-  selectedChatDate: string | 'ALL' = 'ALL';
+  selectedChatDate: string | 'ALL' = 'HOY';
   
   get todayStr(): string {
     return this.toDateString(new Date());
@@ -244,7 +244,7 @@ export class Negocio implements OnInit, OnDestroy {
         console.log(`[Negocio] Business switch detected: ${this.establishmentId} -> ${storedId}`);
         this.resetState();
         this.establishmentId = storedId;
-        this.selectedChatDate = this.todayStr;
+        this.selectedChatDate = 'HOY';
         this.loadEstablishment();
       }
     });
@@ -269,7 +269,7 @@ export class Negocio implements OnInit, OnDestroy {
           console.log(`[Negocio] Worker context detected: establishment ${workerEstablishmentId}, worker ${worker.trabajador_id}`);
           this.resetState();
           this.establishmentId = workerEstablishmentId;
-          this.selectedChatDate = this.todayStr;
+          this.selectedChatDate = 'HOY';
           this.loadEstablishment();
         }
       },
@@ -1340,10 +1340,12 @@ export class Negocio implements OnInit, OnDestroy {
       ? this.appointments.find((appointment) => appointment.cita_id === this.selectedChatAppointment?.cita_id)
       : null;
 
-    this.selectedChatAppointment = currentSelection || this.appointments[0];
+    this.selectedChatAppointment = currentSelection || null;
 
     if (this.selectedChatAppointment) {
       this.loadMessagesForAppointment(this.selectedChatAppointment.cita_id);
+    } else {
+      this.messages = [];
     }
   }
 

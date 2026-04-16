@@ -47,19 +47,21 @@
       </button>
     </form>
 
-    <div class="demo-divider">
-      <span>o</span>
+    <div class="demo-section">
+      <div class="demo-divider">
+        <span>o</span>
+      </div>
+  
+      <button
+        type="button"
+        class="btn-demo"
+        [disabled]="isLoading || isDemoLoading"
+        (click)="onDemoAccess()">
+        <i class="bi bi-play-circle"></i>
+        {{ isDemoLoading ? 'Entrando al demo...' : 'Probar Demo Interactivo' }}
+      </button>
+      <p class="demo-hint">Explora la app con datos de ejemplo y un tour guiado</p>
     </div>
-
-    <button
-      type="button"
-      class="btn-demo"
-      [disabled]="isLoading || isDemoLoading"
-      (click)="onDemoAccess()">
-      <i class="bi bi-play-circle"></i>
-      {{ isDemoLoading ? 'Entrando al demo...' : 'Probar Demo Interactivo' }}
-    </button>
-    <p class="demo-hint">Explora la app con datos de ejemplo y un tour guiado</p>
 
     <p class="auth-link">
       ¿No tienes cuenta? <a routerLink="/register">Regístrate</a>
